@@ -14,7 +14,7 @@ from constants import DEBUG
 from instruction import Instruction
 
 
-# Data structure to represent every entry in the load/store buffer 
+# Data structure to represent every entry in the load/store buffer
 class LoadStoreBufferEntry:
     def __init__(self, instr, ARFTable, memory):
         self._instruction = instr
@@ -66,6 +66,8 @@ class LoadStoreBuffer:
             with open(memoryFile, 'r') as dataMemory:
                 self._memory = dataMemory.readlines()
 
+        self._memory = [row.replace(" ", "") for row in self._memory]
+
     # Function to find the next free index to make an entry.
     # Could have simply ripped of a circular buffer, but meh
     def __update_free_index(self, update=False):
@@ -77,7 +79,7 @@ class LoadStoreBuffer:
         while(counter < self._size):
             self._index = (self._index + 1) % self._size
             if self._buffer[self._index] is None:
-                    break
+                break
             else:
                 counter += 1
 
@@ -135,6 +137,9 @@ class LoadStoreBuffer:
     # Function to get all the entries, for display purpose only
     def get_entries(self):
         return self._buffer
+
+    def get_memory(self):
+        return self._memory
 
     def __str__(self):
         return f"<LW/SW Buffer>"

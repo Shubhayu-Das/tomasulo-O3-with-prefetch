@@ -6,7 +6,7 @@ Developed for Processor Architecture course assignment 1 - Tomasulo Out-Of-Order
 This file contains the data structure used to represent the instruction table and every entry in it.
 
 Each entry is a data structure that stores the cycle in which the instruction passed through different
-stages of the pipeline. It is used to keep track of the state of execution of the instruction, along 
+stages of the pipeline. It is used to keep track of the state of execution of the instruction, along
 with the final outcome(result) of the instruction. This result is ideally supposed to come from a FPU,
 but I am cheating here. The result is calculated by the reservation station.
 
@@ -64,7 +64,7 @@ class InstructionTableEntry:
     # Function to update the result of the instruction, once it completes instruction
     def update_result(self, new_value):
         self._value = new_value
-    
+
     # Function to get the current state of the instruction
     # Legal values include the members of the RunState class in constants.py
     def get_state(self):

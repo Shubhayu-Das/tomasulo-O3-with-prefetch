@@ -8,8 +8,12 @@ This file contains some important constants that are used to modify the behaviou
 
 # Some variables that affect the output of the program
 # Set DEBUG to True to enable text output to the terminal
-DEBUG          = False
-VERSION        = "1.1.0"
+DEBUG = False
+VERSION = "1.1.0"
+
+# Font size for the text in the GUI
+# Decrease if content doesn't seem to fitting in properly
+GUI_FONTSIZE = 16
 
 # CYCLE_DURATION sets the time period of each clock cycle.
 # Increase this value(in milliseconds) to make each cycle last longer in the simulation
@@ -25,17 +29,20 @@ NumCycles = {
 }
 
 # This class is NOT to be modified. Represents the execution states of each instruction
+
+
 class RunState:
     NOT_STARTED = "NOT STARTED"
-    RS          = "RS"
-    EX_START    = "EX_STARTED"
-    EX_END      = "EX_END"
-    CDB         = "CDB"
-    COMMIT      = "COMMIT"        
+    RS = "RS"
+    EX_START = "EX_STARTED"
+    EX_END = "EX_END"
+    CDB = "CDB"
+    COMMIT = "COMMIT"
+
 
 # Stores the number of ARF registers to generate and display(RISC-V has 32)
-LIMIT          = 10
+LIMIT = 10
 
 # The name of the different reservation station groups
 ADD_SUB = "ADD/SUB"
-MUL_DIV = "MUL/DIV"    
+MUL_DIV = "MUL/DIV"

@@ -10,14 +10,14 @@ except main.py, which calls appropriate functions in the main event loop
 '''
 
 import PySimpleGUI as sg
-from constants import LIMIT, NumCycles, VERSION
+from constants import LIMIT, NumCycles, VERSION, GUI_FONTSIZE
 
 
 # Class to encapsulate the entire behaviour of the GUI interface
 # The entire state of the GUI is stored in '_machine_state'
 class Graphics():
     def __init__(self, machineState=None):
-        self._font_size = 16
+        self._font_size = GUI_FONTSIZE
         if machineState:
             self._machine_state = machineState
         else:
@@ -43,7 +43,11 @@ class Graphics():
                     "colors": []
                 },
                 "metadata": {
-                    "cycle": 0
+                    "cycle": 0,
+                    "data-mem": {
+                        "contents": [[hex(addr), bin(0), hex(0), 0] for addr in range(64)],
+                        "colors": []
+                    }
                 }
             }
 
@@ -55,7 +59,7 @@ class Graphics():
 
         if len(row_contents) > n_rows:
             hide_vertical_scroll = False
-        
+
         table = sg.Table(
             values=row_contents,
             headings=headings,
@@ -84,6 +88,9 @@ class Graphics():
         if aspect_ratio < 16/9:
             self._font_size = 14
 
+        # Code for tab 1 starts
+        # This tab contains all the components of the actual Tomasulo hardware
+
         mainHeading = [sg.Text(
             "Tomasulo out-of-order simulation",
             justification="center",
@@ -97,12 +104,12 @@ class Graphics():
             layout=[[sg.Text(
                     text=self._machine_state["metadata"]["cycle"],
                     key="cycle_number",
-                    size=(4,1),
+                    size=(4, 1),
                     text_color="black",
                     font=f"Times {self._font_size+2}",
-                )]],
+                    )]],
             title_location=sg.TITLE_LOCATION_TOP,
-            element_justification = "center",
+            element_justification="center",
         )]
 
         # Extract the content of each of the tables, from the machine's state
@@ -126,6 +133,11 @@ class Graphics():
         robHeading = [" Name ", "  Instruction  ", " Dest. ", "  Value  "]
         arfHeading = ["Reg", "   Value   ", "Mapping", "Busy"]
         cycleHeading = ["Instr.", "No. of cycles"]
+        dataMemoryHeading = [
+            "Address",
+            "          Data(bin)          ",
+            "Data(hex)", "Data(decimal)"
+        ]
 
         # Generate the menu
         menu = [
@@ -160,17 +172,17 @@ class Graphics():
             key="reserve_station"
         )
         ROBTable = self.__generateTable("ROB",
-                ROB,
-                robHeading,
-                n_rows=8,
-                key="rob"
-        )
+                                        ROB,
+                                        robHeading,
+                                        n_rows=8,
+                                        key="rob"
+                                        )
         ARFTable = self.__generateTable("ARF",
-                ARF,
-                arfHeading,
-                n_rows=LIMIT,
-                key="arf"
-        )
+                                        ARF,
+                                        arfHeading,
+                                        n_rows=LIMIT,
+                                        key="arf"
+                                        )
         CycleInfoTable = self.__generateTable(
             "No. of Cycles",
             nCycles,
@@ -234,29 +246,87 @@ class Graphics():
         else:
             allowScroll = True
             col2 = [sg.Column(
-                [instructionTable, loadStoreBufferTable, reservationStationTable, ARFTable + ROBTable],
+                [instructionTable, loadStoreBufferTable,
+                    reservationStationTable, ARFTable + ROBTable],
                 element_justification="center",
                 expand_x=True,
                 key="layout_col2"
             )]
             col3 = []
-        
-        # Generate the final layout, by combining the individual columns
-        displayLayout = [[
-            sg.Column(
+
+        tab_1_layout = [sg.Tab(
+            title="Tomasulo components",
+            layout=[[sg.Column(
                 layout=[
-                    menu,
-                    mainHeading,
-                    [sg.HorizontalSeparator(color="black")],
-                    col1 + col2 + col3
+                    col2 + col3
                 ],
                 element_justification="center",
                 scrollable=allowScroll,
                 vertical_scroll_only=allowScroll,
                 size=sg.Window.get_screen_size(),
-                key="main_scroll_col"
-            )
-        ]]
+                key="main_scroll_col_1"
+            )]],
+            key="tab_1_layout"
+        )]
+        # Tab 1 code ends
+
+        # Tab 2 code starts
+        # This tab contains all the cache related code
+
+        tab_2_layout = [sg.Tab(
+            title="Cache",
+            layout=[[sg.Column(
+                layout=[
+                    [sg.Text("Add the cache related things here")]
+                ],
+                element_justification="center",
+                scrollable=allowScroll,
+                vertical_scroll_only=allowScroll,
+                size=sg.Window.get_screen_size(),
+                key="main_scroll_col_2"
+            )]],
+            key="tab_2_layout"
+        )]
+        # Tab 2 code ends
+
+        # Tab 3 code starts
+        # This tab shows the data memory, for completeness
+        dataMemoryTable = self.__generateTable(
+            "Data Memory",
+            self._machine_state["metadata"]["data-mem"],
+            dataMemoryHeading,
+            n_rows=20,
+            key="data_mem_table",
+        )
+
+        tab_3_layout = [sg.Tab(
+            title="Data memory",
+            layout=[[sg.Column(
+                layout=[
+                    dataMemoryTable
+                ],
+                element_justification="center",
+                scrollable=allowScroll,
+                vertical_scroll_only=allowScroll,
+                size=sg.Window.get_screen_size(),
+                key="main_scroll_col_3"
+            )]],
+            key="tab_3_layout"
+        )]
+        # Tab 3 code ends
+
+        # Generate the final layout, by combining the individual columns
+        displayLayout = [
+            menu,
+            mainHeading,
+            [sg.HorizontalSeparator(color="black", key="sep_2")],
+            col1 + [sg.TabGroup(
+                layout=[
+                    tab_1_layout + tab_2_layout + tab_3_layout
+                ],
+                key="tabs"
+            )]
+        ]
 
         return displayLayout
 
@@ -282,7 +352,7 @@ class Graphics():
         colors = []
         for entry in instructionTable._entries:
             data = []
-            
+
             data.append(entry._instruction.str_disassemble())
             data.append(str(entry._rs_issue_cycle))
             data.append(str(entry._exec_start))
@@ -321,7 +391,7 @@ class Graphics():
         colors = []
         for name, entry in rob.get_entries().items():
             data = []
-            if entry == None:
+            if entry is None:
                 data = [name] + [""] * 3
             else:
                 data.append(name)
@@ -345,13 +415,13 @@ class Graphics():
                 if entry:
                     data.append(name)
                     data.append(entry._instruction.str_disassemble())
-                    
+
                     data.append(str(entry._busy)[0])
                     data.append(entry._dest)
 
                     data.append(entry._src_tag1)
                     data.append(entry._src_tag2)
-                    
+
                     data.append(str(entry._src_val1))
                     data.append(str(entry._src_val2))
                 else:
@@ -372,7 +442,7 @@ class Graphics():
             data = []
             if entry:
                 data.append(entry.get_inst().str_disassemble())
-                
+
                 data.append(str(entry.is_busy())[0])
                 data.append(entry._dest)
 
@@ -385,25 +455,40 @@ class Graphics():
             insts.append(data)
             colors.append("")
 
+        mem = []
+        for addr, mem_row in enumerate(LW_SW.get_memory()):
+            data = []
+            data.append(hex(addr))
+            data.append(mem_row)
+            data.append(hex(int(mem_row, 2)))
+            data.append(int(mem_row, 2))
+
+            mem.append(data)
+
         self._machine_state["Load Store Buffer"]["contents"] = insts
         self._machine_state["Load Store Buffer"]["colors"] = colors
+        self._machine_state["metadata"]["data-mem"]["contents"] = mem
+        self._machine_state["metadata"]["data-mem"]["colors"] = colors
 
     # Function to call the individual update blocks. This function is called from the main event loop
     def updateContents(self, window, cycle, instructionTable=None, ROB=None, resStats=None, ARF=None, LS_Buffer=None):
         self._machine_state["metadata"]["cycle"] = cycle
-        window["cycle_number"].update(value=self._machine_state["metadata"]["cycle"])
+        window["cycle_number"].update(
+            value=self._machine_state["metadata"]["cycle"])
 
         if instructionTable:
             self.__convertInstructionTable(instructionTable)
-            window['inst_table'].update(self._machine_state["Instruction Table"]["contents"])
-        
+            window['inst_table'].update(
+                self._machine_state["Instruction Table"]["contents"])
+
         if ROB:
             self.__convertROB(ROB)
             window['rob'].update(self._machine_state["ROB"]["contents"])
 
         if resStats:
             self.__convertReservationStation(resStats)
-            window['reserve_station'].update(self._machine_state["Reservation Station"]["contents"])
+            window['reserve_station'].update(
+                self._machine_state["Reservation Station"]["contents"])
 
         if ARF:
             self.__convertARF(ARF)
@@ -411,45 +496,52 @@ class Graphics():
 
         if LS_Buffer:
             self.__convertLSBuffer(LS_Buffer)
-            window['ls_buffer_table'].update(self._machine_state["Load Store Buffer"]["contents"])
+            window['ls_buffer_table'].update(
+                self._machine_state["Load Store Buffer"]["contents"])
+            window['data_mem_table'].update(
+                self._machine_state["metadata"]["data-mem"]["contents"])
 
     # Function to reset the machine state in GUI
     # Used after loading in a new program
     def resetState(self):
         self._machine_state = {
-                "Instruction Table": {
-                    "contents": [[""]*6]*5,
+            "Instruction Table": {
+                "contents": [[""]*6]*5,
+                "colors": []
+            },
+            "Reservation Station": {
+                "contents": [["ADD/SUB", "", "", "", "", "", "", ""]]*3 + [["MUL/DIV", "", "", "", "", "", "", ""]]*2,
+                "colors": []
+            },
+            "ROB": {
+                "contents": [[""]*4]*2,
+                "colors": []
+            },
+            "Load Store Buffer": {
+                "contents": [[""]*5]*2,
+                "colors": []
+            },
+            "ARF": {
+                "contents": [f" R{i} " for i in range(0, LIMIT)],
+                "colors": []
+            },
+            "metadata": {
+                "cycle": 0,
+                "data-mem": {
+                    "contents": [[hex(addr), bin(0), hex(0), 0] for addr in range(64)],
                     "colors": []
-                },
-                "Reservation Station": {
-                    "contents": [["ADD/SUB", "", "", "", "", "", "", ""]]*3 + [["MUL/DIV", "", "", "", "", "", "", ""]]*2,
-                    "colors": []
-                },
-                "ROB": {
-                    "contents": [[""]*4]*2,
-                    "colors": []
-                },
-                "Load Store Buffer": {
-                    "contents": [[""]*5]*2,
-                    "colors": []
-                },
-                "ARF": {
-                    "contents": [f" R{i} " for i in range(0, LIMIT)],
-                    "colors": []
-                },
-                "metadata": {
-                    "cycle": 0
                 }
             }
+        }
 
     # Function to call up the About popup:
     def generateAboutPopup(self):
         contents = f'''
-        Developer: Shubhayu Das
+        Developer: Shubhayu Das, Veerendra S Devaraddi, Sai Manish Sasanapuri
         Program: Tomasulo Machine simulator
         Version: {VERSION}
-        Date: 12th March, 2021
-        Project repo: https://github.com/Shubhayu-Das/VL803-projects/tree/main/OOO%20processor
+        Date: 3rd April, 2021
+        Project repo: https://github.com/Shubhayu-Das/tomasulo-O3-with-prefetch
         '''
         sg.popup_ok(
             contents,
@@ -465,23 +557,23 @@ class Graphics():
         1. This program is a cycle-by-cycle simulation of the Tomasulo Out Of Order Machine, used in the IBM 360/91
 
         2. Each of the main components is assigned its own display table. If the tables are too long, they will have scrollbars
-        
+
         3. The GUI scales and adjusts according to your screen resolution, Best results are obtained at 1920x1080 and 1440x900.
-        
+
         4. The GUI is interactive, the behaviour can be controlled using the buttons in the Control Panel on the left
-        
+
         5. To single step through the clock cycles of the simulation, use the previous and next buttons. It is recommended that you\
         pause the simulation before this.
-        
+
         6. To start the simulation, click on the "Start" button. The button will change to a pause button after this.
-        
+
         7. To pause the simulation, click on the "Pause" button; after this the button will change to a continue button. Clicking it\
         will continue executing the simulation.
-        
+
         8. Some executions can take a while, with nothing noticeable happening. To skip to the next cycle, where one of the components\
         have a change, click on the "Next Event" button. This button can be used irrespective of whether the simulation is running\
         or is paused.
-        
+
         9. There are some known bugs in the GUI. Refer to the README for more details
         '''
 
@@ -490,7 +582,7 @@ class Graphics():
             title="Instructions of use",
             non_blocking=True,
             grab_anywhere=True,
-            background_color = 'white',
+            background_color='white',
             text_color="black",
             font=f"Times {self._font_size}",
             size=(100, 10)
@@ -499,6 +591,7 @@ class Graphics():
     # Function to load in a new file
     def generateFileLoader(self, text):
         return sg.popup_get_file(text)
+
 
 # Local testing code
 if __name__ == "__main__":

@@ -15,8 +15,9 @@ import sys
 def split_operands(program):
     program = [inst.split(";")[0] for inst in program]
     program = list(filter(None, program))
-    program = [re.split(",|\ ", inst.strip()) for inst in program]
-    program = [[word.upper().replace('X', '') for word in inst if word] for inst in program]
+    program = [re.split(r",|\s", inst.strip()) for inst in program]
+    program = [[word.upper().replace('X', '') for word in inst if word]
+               for inst in program]
     program = [inst for inst in program if inst]
 
     return program
@@ -81,13 +82,15 @@ def assembler(filename):
             rs1 = pad(bin(int(rs1.replace(')', ''))), 5)
             rd = pad(bin(int(inst[1])), 5)
 
-            assembly.append(offset + rs1 + mapping["LW"]["funct3"] + rd + mapping["LW"]["opcode"])
+            assembly.append(
+                offset + rs1 + mapping["LW"]["funct3"] + rd + mapping["LW"]["opcode"])
         else:
             rd = pad(bin(int(inst[1])), 5)
             rs1 = pad(bin(int(inst[2])), 5)
             rs2 = pad(bin(int(inst[3])), 5)
-            
-            assembly.append(mapping[inst[0]]["funct7"] + rs2 + rs1 + mapping[inst[0]]["funct3"] + rd + mapping[inst[0]]["opcode"])
+
+            assembly.append(mapping[inst[0]]["funct7"] + rs2 + rs1 +
+                            mapping[inst[0]]["funct3"] + rd + mapping[inst[0]]["opcode"])
 
     # Write the assembled binary into an output bin file
     with open(f"build/{outFile}", 'w') as destFile:
@@ -97,6 +100,7 @@ def assembler(filename):
                 destFile.write("\n")
 
     return f"build/{outFile}"
+
 
 # Check if a program was fed it, otherwise use a default
 if len(sys.argv) < 2:

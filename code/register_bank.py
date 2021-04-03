@@ -33,7 +33,7 @@ class Register:
     # Get the linked ROB entry. Returns None is the register is not linked to ROB
     def get_link(self):
         return self._link
-    
+
     # Returns True if the register is linked to ROB and is waiting for a new value
     def is_busy(self):
         return self._busy
@@ -63,8 +63,8 @@ class RegisterBank:
 
         # Perform random initialization of the ARF
         if init == "random":
-            init = [randint(1, 101) for _  in range(size)]
-    
+            init = [randint(1, 101) for _ in range(size)]
+
         # Initialize the register with some initial value
         for i in range(0, size):
             self._bank.update({f"R{i}": Register(f"R{i}", init[i], False)})

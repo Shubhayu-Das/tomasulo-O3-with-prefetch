@@ -4,7 +4,7 @@ MIT Licensed by Shubhayu Das, copyright 2021
 Developed for Processor Architecture course assignment 1 - Tomasulo Out-Of-Order Machine
 
 This file contains the data structure used to represent the ROB and each of its entries
-The ROB kills two birds with one stone: performs register renaming to prevent false 
+The ROB kills two birds with one stone: performs register renaming to prevent false
 dependencies. It is also used for in-order writeback, which helps preserve the machine
 state in case of faults/errors, leading to improved error handling
 '''
@@ -58,7 +58,7 @@ class ROBTable:
         for i in range(1, size+1):
             self._bank.update({f"ROB{i}": None})
 
-    # Function to add an entry to the head of the ROB, if possible 
+    # Function to add an entry to the head of the ROB, if possible
     def add_entry(self, inst, dest):
         if self._bank[f"ROB{self._head}"]:
             if DEBUG:
@@ -100,7 +100,7 @@ class ROBTable:
             if DEBUG:
                 print("ROB EMPTY")
             return False
-        
+
         removedValue = self._bank[f"ROB{self._tail}"]
         self._bank[f"ROB{self._tail}"] = None
         self._tail += 1

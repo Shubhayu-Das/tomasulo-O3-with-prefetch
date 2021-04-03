@@ -1,3 +1,5 @@
+from register_bank import Register
+
 # RISC-V opcodes repo license
 '''
 Copyright (c) 2010-2017, The Regents of the University of California
@@ -46,25 +48,24 @@ instruction - funct7 - rs2 - rs1 - funct3 - rd - opcode
 
 ADD/SUB/MUL/DIV rd, rs1, rs2
 
-References: 
-1.  ADD/SUB/LW/SW come from 
+References:
+1.  ADD/SUB/LW/SW come from
     RV32I: https://github.com/riscv/riscv-opcodes/blob/master/opcodes-rv32i
 
-2.  MUL/DIV come from 
+2.  MUL/DIV come from
     RV32M: https://github.com/riscv/riscv-opcodes/blob/master/opcodes-rv32m
 
 Note: RISC-V and its repos have their own license and are NOT are a part of the MIT license that my program files
 are licensed under.
 '''
 
-from register_bank import Register
-
-
 # Instruction data structure that stores all the necessary information that an instruction carries
+
+
 class Instruction:
     def __init__(self, PC=-1, funct7="0000000", rs2="00000", rs1="00000",
                  rd="00000", funct3="000", opcode="0000000", hasOffset=False):
-        
+
         if PC > 0:
             self.PC = PC
 
@@ -103,7 +104,7 @@ class Instruction:
                 "rs1": self.rs1,
                 "offset": offset
             }
-            
+
         else:
             if self.opcode == "0110011":
                 if self.funct3 == "000":
@@ -132,7 +133,7 @@ class Instruction:
     def str_disassemble(self):
         instruction = self.disassemble()
         rd = instruction["rd"]
-    
+
         rs1 = instruction["rs1"]
 
         if "offset" in instruction.keys():

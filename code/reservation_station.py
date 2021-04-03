@@ -21,8 +21,10 @@ class ReservationStationEntry:
         self._value = None
 
         # Check if the value is available, else get the tag
-        self._src_val1, self._src_tag1 = self.__getSrcValTag(ARFTable.get_register(instr.rs1))
-        self._src_val2, self._src_tag2 = self.__getSrcValTag(ARFTable.get_register(instr.rs2))       
+        self._src_val1, self._src_tag1 = self.__getSrcValTag(
+            ARFTable.get_register(instr.rs1))
+        self._src_val2, self._src_tag2 = self.__getSrcValTag(
+            ARFTable.get_register(instr.rs2))
 
     # Function to check if the ARF entry is valid, and get the value/tag accordingly
     def __getSrcValTag(self, source):
@@ -42,7 +44,7 @@ class ReservationStationEntry:
             condition = (self._src_val1 != "-") and (self._src_val2 != "-")
             if condition:
                 self._value = self.__exec()
-            
+
             return condition
 
     # Private function to get the calculated value of the instructions
@@ -85,7 +87,7 @@ class ReservationStationEntry:
                 """
 
 
-# Data structure to represent the RSes 
+# Data structure to represent the RSes
 class ReservationStation:
     def __init__(self, inst_type, size):
         self._type = inst_type
@@ -105,7 +107,7 @@ class ReservationStation:
         while(counter < self._size):
             self._index = (self._index + 1) % self._size
             if self._buffer[self._index] is None:
-                    break
+                break
             else:
                 counter += 1
 
@@ -125,7 +127,7 @@ class ReservationStation:
 
         if isinstance(instruction, Instruction):
             entry = ReservationStationEntry(instruction, ARFTable)
-        
+
         else:
             return False
 

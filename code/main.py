@@ -42,7 +42,6 @@ class Tomasulo:
         self._LSQ = LoadStoreBuffer(size=3, memoryFile=data_mem_src)
         self._ROB = ROBTable(size=8)
 
-
         # Load in the program and create the instruction table accordingly
         # The instruction table is NOT a functional component of the Tomasulo machine
         with open(program_src) as binary:
@@ -50,16 +49,18 @@ class Tomasulo:
             program = [inst.strip() for inst in program]
 
             for local_PC, inst in enumerate(program):
-                self._instructions.append(Instruction.segment(inst, PC=local_PC+1))
+                self._instructions.append(
+                    Instruction.segment(inst, PC=local_PC+1))
 
-        self._instructionTable = InstructionTable(size=min(10, len(self._instructions)))
+        self._instructionTable = InstructionTable(
+            size=min(10, len(self._instructions)))
 
         for instruction in self._instructions:
             self._instructionTable.add_entry(instruction)
 
-    #-------------------------------------------------------------------------------#
+    # ------------------------------------------------------------------------------- #
     # Functions to implement each stage of the pipeline
-    #-------------------------------------------------------------------------------#
+    # ------------------------------------------------------------------------------- #
 
     # Function to try and dispatch next instruction if corresponding RS is free
     # Updates all relevant source mappings too
@@ -81,9 +82,11 @@ class Tomasulo:
                 if RS:
                     if not RS.is_busy():
                         if RS.add_entry(instruction, self._ARF):
-                            destination = self._ARF.get_register(it_entry._instruction.rd)
-                            destination.set_link(self._ROB.add_entry(it_entry._instruction, destination))
-                            
+                            destination = self._ARF.get_register(
+                                it_entry._instruction.rd)
+                            destination.set_link(self._ROB.add_entry(
+                                it_entry._instruction, destination))
+
                             if RS in [self._ADD_RS, self._MUL_RS]:
                                 RS.updateEntries(self._ARF, robEntry)
 
@@ -92,16 +95,17 @@ class Tomasulo:
 
                         break
 
-
     # Function to simulate the execution of the process. This includes dispatching
     # self._instructions and handling their execution steps
+
     def tryExecute(self):
         for RS in [self._LSQ, self._ADD_RS, self._MUL_RS]:
             for rs_entry in RS.get_entries():
                 if rs_entry:
-                    it_entry = self._instructionTable.get_entry(rs_entry._instruction)
+                    it_entry = self._instructionTable.get_entry(
+                        rs_entry._instruction)
 
-                    if it_entry.get_state() == constants.RunState.RS and rs_entry.is_executeable():                    
+                    if it_entry.get_state() == constants.RunState.RS and rs_entry.is_executeable():
                         it_entry.ex_start(self._clock_cycle)
                         it_entry.update_result(rs_entry.get_result())
                         RS.remove_entry(rs_entry.get_inst())
@@ -113,13 +117,13 @@ class Tomasulo:
             if it_entry.get_state() == constants.RunState.EX_START:
                 it_entry.ex_tick(self._clock_cycle)
 
-
     # Function to perform the CDB broadcast, when an instruction has completed executing
+
     def tryCDBBroadcast(self):
         for it_entry in self._instructionTable.get_entries():
             if it_entry.get_state() == constants.RunState.EX_END:
                 it_entry.cdb_write(self._clock_cycle)
-                
+
                 value = it_entry.get_result()
                 robEntry = self._ROB.update_value(it_entry.get_inst(), value)
 
@@ -130,9 +134,9 @@ class Tomasulo:
                 self._next_event = True
                 return robEntry
 
-
     # Function to commit the result of an instruction, if it has completed CDB broadcast
     # and is at the tail of the self._ROB
+
     def tryCommit(self):
         for it_entry in self._instructionTable.get_entries():
             if it_entry.get_state() == constants.RunState.COMMIT:
@@ -147,17 +151,17 @@ class Tomasulo:
                 self._n_complete += 1
             break
 
-
     # Function to call all the above function, while updating the program counter
+
     def logic_loop(self):
         if self._n_complete == len(self._instructions):
             return
-        
+
         self._clock_cycle += 1
-        
+
         if constants.DEBUG:
             print(self._clock_cycle)
-        
+
         # Execute each of the steps in reverse-pipeline order
         # The reverse order is to make sure that the previous instruction completes its stages
         self.tryCommit()
@@ -237,9 +241,9 @@ if __name__ == "__main__":
     # Create the Tomasulo machine object
     machine = Tomasulo(program_src, data_mem_src)
 
-#-------------------------------------------------------------------------------#
+# ------------------------------------------------------------------------------- #
 # GUI related things, with event loop, which updates the processor in every clock self._clock_cycle
-#-------------------------------------------------------------------------------#
+# ------------------------------------------------------------------------------- #
 
     RUN = False
     backwards = 0
@@ -273,7 +277,7 @@ if __name__ == "__main__":
                 window["pause_button"].update(text="Continue")
             else:
                 window["pause_button"].update(text="  Pause  ")
-        
+
             RUN = not RUN
 
         elif event in ["previous_button", "next_button"] and not RUN:
@@ -304,12 +308,14 @@ if __name__ == "__main__":
                 while not machine.next_event_occured():
                     machine.logic_loop()
                 machine.reset_next_event()
-        
+
         elif event in ["Load new program", "Load new data memory"] and not RUN:
             if event == "Load new program":
-                filename = GUI.generateFileLoader("Enter program file(.bin format only)")
+                filename = GUI.generateFileLoader(
+                    "Enter program file(.bin format only)")
             else:
-                filename = GUI.generateFileLoader("Enter program file(.dat format only)")
+                filename = GUI.generateFileLoader(
+                    "Enter program file(.dat format only)")
 
             if filename:
                 if event == "Load new program" and filename.split('.')[-1] != "bin":
@@ -371,7 +377,7 @@ if __name__ == "__main__":
                 else:
                     # Run the processor for one clock cycle
                     machine.logic_loop()
-                
+
                 # Render the contents to the GUI
                 GUI.updateContents(
                     window,

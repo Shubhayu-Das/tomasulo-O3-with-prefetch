@@ -23,17 +23,24 @@ Version: 1.1.0
 -----------------------------
 
 ### Progress
-Completed the base model of the Tomasulo machine, as implemented in the IBM 360/91. The difference is that the Tomasulo machine was originally meant for floating point units only, but I am using it for integers too. The other rub is that I am actually using *integer* instructions from RISC-V ISA, for this sim.
+Updated GUI to accomodate cache and data memory display.
 
 -----------------------------
 
 ### Future improvements
-1. Additional GUI features
-2. Document the code base and improve this README
+1. Develop cache, which can accept prefetching and replacement policies
+2. Develop base next-line prefetchet
+3. Develop base LRU replacement policy
+4. Integrate everything with existing codebase and GUI
+5. Add additional prefetchers and replacement policies
+6. Additional GUI features
+7. Document the code base and improve this README
 
 ------------------------------
 
 ### Software libraries
+
+**GUI**
 
 The GUI needs the ```tkinter``` and ```pysimplegui```. These can be installed using the following commands:
 
@@ -50,8 +57,33 @@ $ pip install pysimplegui
 
 I have tested the code on Python 3.8.7 on both the OS (Windows 1903 build and Ubuntu 20.04.01 LTS), if there are any issues, please raise an Issue on Github. The GUI might appear different in different screens, depending on the aspect ratios. I have tried to make it useable, over looking pretty. For better control over the GUI, I would have to dive too deep(using tk or Qt5), which I can't bother to do now.
 
+**Linting**
+
+This project enforces uniform code style using the pep8 standards. For this, the ```pycodestyle``` and ```autopep8``` libraries are used. The ```E501``` styling(too long lines) is ignored, because there are just too many of them and they are hard to fix properly. The libraries can be installed as extensions in VS code. However, I prefer using them from the terminal. To install them, run(in any OS):
+
+```bash
+$ pip install pycodestyle autopep8
+```
+
+After this, detect all the errors using:
+```pycodestyle code/ --statistics```. You might want to pipe the output through pipe, to see the statistics at the end only. Optionally, you can use ```grep``` to find which files have the error.
+
+To fix(most of) the errors, use ```autopep8``` as follows:
+
+```autopep8 code/ --recursive --in-place -j 8 --pep8-passes 1000```
+
+
+To fix a single error, use:
+
+```autopep8 code/ --recursive --in-place -j 8 --pep8-passes 1000 --select=<error code>```.
+
+Note that for both the above steps, you need to be in the directory which contains this README file.
+
+
 **References**:
 1. [PySimpleGUI documentation website](https://pysimplegui.readthedocs.io/en/latest/)
+2. [autopep8 documentation](https://pypi.org/project/autopep8/#usage)
+3. [pep8 documentation](https://www.python.org/dev/peps/pep-0008/)
 
 --------------------
 
