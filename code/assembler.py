@@ -89,7 +89,7 @@ def assembler(filename):
             
             assembly.append(mapping[inst[0]]["funct7"] + rs2 + rs1 + mapping[inst[0]]["funct3"] + rd + mapping[inst[0]]["opcode"])
 
-    # Write the assembled binary into an output elf file
+    # Write the assembled binary into an output bin file
     with open(f"build/{outFile}", 'w') as destFile:
         for idx, inst in enumerate(assembly):
             destFile.write(inst)

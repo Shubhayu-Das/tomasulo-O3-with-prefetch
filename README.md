@@ -1,19 +1,24 @@
-(to see the initial working history, see [here](https://github.com/Shubhayu-Das/VL803-projects))
+(to see the initial working history, see [here](https://github.com/Shubhayu-Das/VL803-projects)). *This repo is not public yet.*
 
 # Tomasulo OOO Processor
 -------------------------
 
-This is my attempt to make an interactive simulation of the Tomasulo out of order processor, as part of the VL803 course's first assignment.
-This documentation is still in the works, I am actively trying to improve things in this program and documentation. Feel
-free to raise Issues for feature requests and bugs.
+This is our attempt to improve on the base Tomasulo machine, designed by Shubhayu Das, as part of the VL803 course's first assignment. In this extension to the original code, we will implement various data prefetching policies. Our course was instructed by professor [Nanditha Rao](https://in.linkedin.com/in/nanditha-rao-b5608928) at IIITB.
 
--------------------
-### Student
-Name: Shubhayu Das
+This documentation is still in the works, We will actively improve things in this program and documentation. 
 
-Roll number: IMT2018523
+Feel free to raise Issues for feature requests and bugs.
+
+The original code is publicly available [here](https://gitlab.com/shubhayu-das/tomasulo-o3-processor-simulator). We will make the original repo public on Github after our course is complete.
+
 
 Version: 1.1.0
+
+-------------------
+### Students
+1. [Sai Manish Sasanapuri](https://github.com/Sai-Manish/)
+2. [Shubhayu Das](https://github.com/Shubhayu-Das/)
+3. [Veerendra S. Devaraddi](https://github.com/vsdevaraddi)
 
 -----------------------------
 
@@ -57,21 +62,21 @@ This simulator supports LW/SW, ADD/SUB from RISC-V RV32I, and MUL/DIV from RISC-
 Summary to execute program:
 - To simply start the simulation, for the given question: ```python main.py```
 
-- To load custom assembled program: ```python main.py build/<filename.elf>```
+- To load custom assembled program: ```python main.py build/<filename.bin>```
 
-- To load in custom data memory along with assembled program: ```python main.py build/<filename.elf> <data_mem.data>```
+- To load in custom data memory along with assembled program: ```python main.py build/<filename.bin> <data_mem.data>```
 
 ### Detailed instructions:
 - Place your ```asm``` program in the src folder.
 - Open a terminal and navigate to the ```code/``` folder. Execute: ```python assembler.py src/<filename.asm>```.
-- This will generate the ```elf``` file in ```build/<filename.elf>```.
-- Now run: ```python main.py build/<filename.elf>``` to launch the simulation
+- This will generate the ```bin``` file in ```build/<filename.bin>```.
+- Now run: ```python main.py build/<filename.bin>``` to launch the simulation
 - The simulation supports pausing, stepping back and forward - one step at a time.
 - To stop the simulation, simply close the window
 - The data memory is stored in ```data_memory.dat```. You can either modify the same file, or create a separate file.
   The data memory file can be chosen from the GUI itself(Load > Load from data memory). Or while executing the program:
 
-  ```python main.py build/<filename.elf> <data_mem.data>```
+  ```python main.py build/<filename.bin> <data_mem.data>```
 
 - To change the duration spent on each cycle, open ```constants.py``` and adjust the ```CYCLE_DURATION``` in *milliseconds* to your desired value.
 
@@ -88,4 +93,4 @@ Summary to execute program:
 
 ### License
 
-I have MIT licensed this project **except for the RISC-V references**. RISC-V opcodes repo [riscv/riscv-opcodes](https://github.com/riscv/riscv-opcodes) is licensed by the University of California.
+We have MIT licensed this project **except for the RISC-V references**. RISC-V opcodes repo [riscv/riscv-opcodes](https://github.com/riscv/riscv-opcodes) is licensed by the University of California.
