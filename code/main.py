@@ -234,7 +234,7 @@ if __name__ == "__main__":
 
     # Choose a data sourse
     if len(sys.argv) < 3 or not os.path.exists(sys.argv[2]):
-        data_mem_src = "../memory/data_memory.dat"
+        data_mem_src = "memory/data_memory.dat"
     else:
         data_mem_src = sys.argv[2]
 
