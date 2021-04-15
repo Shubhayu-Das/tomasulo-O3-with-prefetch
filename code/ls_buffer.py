@@ -16,7 +16,7 @@ from instruction import Instruction
 
 # Data structure to represent every entry in the load/store buffer
 class LoadStoreBufferEntry:
-    def __init__(self, instr, ARFTable, memory):
+    def __init__(self, instr, ARFTable, memory, memfile=None):
         self._instruction = instr
         self._busy = True
         self._dest = instr.rd
@@ -63,8 +63,12 @@ class LoadStoreBuffer:
 
         # Load the memory into...memory
         if os.path.exists(memoryFile):
+            self.fileName = memoryFile
             with open(memoryFile, 'r') as dataMemory:
                 self._memory = dataMemory.readlines()
+        else:
+            print("Memory file not found")
+            return
 
         self._memory = [row.replace(" ", "") for row in self._memory]
 

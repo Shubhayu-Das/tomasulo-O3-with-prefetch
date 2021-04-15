@@ -41,7 +41,8 @@ The following instructions are supported by this program
 instruction - funct7 - rs2 - rs1 - funct3 - rd - opcode
     ADD      0000000 - src2 - src1 - 000 - dest - 0110011
     SUB      0100000 - src2 - src1 - 000 - dest - 0110011
-    LW        offset[31:20] - src1 - 010 - dest - 1010011
+    LW        offset[31:20] - src1 - 010 - dest - 0000011
+    SW       os[11:5] - src - base - 010 -os[4:0]-0100011 
 
     MUL      0000001 - src2 - src1 - 000 - dest - 0110011
     DIV      0000001 - src2 - src1 - 100 - dest - 0110011
@@ -73,18 +74,23 @@ class Instruction:
         self.offset = None
         self.funct7 = None
 
-        # To differentiate between instructions with offset(LW) and other instructions(ADD, SUB etc)
+        # To differentiate between instructions with offset(LW, SW) and other instructions(ADD, SUB etc)
         if hasOffset:
-            self.offset = funct7 + rs2
+            if opcode == "0000011" and funct3 == "010":    # LW
+                self.rd = rd
+                self.offset = funct7 + rs2
+            elif opcode == "0100011" and funct3 == "010":  # SW
+                self.rs2 = rs2
+                self.offset = funct7 + rd
         else:
-            self.funct7 = funct7
+            self.rd = rd
             self.rs2 = rs2
+            self.funct7 = funct7
 
-        self.hasOffset = hasOffset
         self.rs1 = rs1
-        self.rd = rd
         self.funct3 = funct3
         self.opcode = opcode
+        self.hasOffset = hasOffset
 
     # Function to convert binary to English for decision making and displaying
     # Returns a struct which contains all the individual segments of the instruction, depending on their type
@@ -93,17 +99,29 @@ class Instruction:
 
         if self.hasOffset:
             offset = int(self.offset, 2)
-            if self.opcode == "1010011" and self.funct3 == "010":
-                command = "LW"
-            else:
-                return -1
 
-            return {
-                "command": command,
-                "rd": self.rd,
-                "rs1": self.rs1,
-                "offset": offset
-            }
+            if self.opcode == "0000011" and self.funct3 == "010":
+                command = "LW"
+
+                return {
+                    "command": command,
+                    "rd": self.rd,
+                    "rs1": self.rs1,
+                    "offset": offset
+                }
+
+            elif self.opcode == "0100011" and self.funct3 == "010":
+                command = "SW"
+
+                return {
+                    "command": command,
+                    "rs1": self.rs1,
+                    "rs2": self.rs2,
+                    "offset": offset
+                }
+
+            else:
+                return -1            
 
         else:
             if self.opcode == "0110011":
@@ -132,13 +150,19 @@ class Instruction:
     # Function to convert the binary to a English string for displaying purposes only
     def str_disassemble(self):
         instruction = self.disassemble()
-        rd = instruction["rd"]
 
         rs1 = instruction["rs1"]
 
-        if "offset" in instruction.keys():
-            return f"{instruction['command']} {rd}, {instruction['offset']}({rs1})"
+        if self.hasOffset:
+            if instruction["command"] == "LW":
+                rd = instruction["rd"]
+                return f"{instruction['command']} {rd}, {instruction['offset']}({rs1})"
+
+            elif instruction["command"] == "SW":
+                rs2 = instruction["rs2"]
+                return f"{instruction['command']} {rs2}, {instruction['offset']}({rs1})"
         else:
+            rd = instruction["rd"]
             return f"{instruction['command']} {rd}, {rs1}, {instruction['rs2']}"
 
     # Globally accessible class method to create an Instruction from a binary input
@@ -158,23 +182,44 @@ class Instruction:
         hasOffset = False
 
         # If we encounter a load word
-        if funct3 == "010" and opcode == "1010011":
+        if funct3 == "010":
             hasOffset = True
-            rs2 = instruction[7:12]
 
-        return Instruction(
-            PC=PC,
-            funct7=funct7,
-            rs2=rs2,
-            rs1=rs1,
-            rd=rd,
-            funct3=funct3,
-            opcode=opcode,
-            hasOffset=hasOffset
-        )
+            # LW instruction
+            if opcode == "0000011":
+                rs2 = instruction[7:12]
+
+                return Instruction(
+                    PC=PC,
+                    funct7=funct7,
+                    rs2=rs2,
+                    rs1=rs1,
+                    rd=rd,
+                    funct3=funct3,
+                    opcode=opcode,
+                    hasOffset=hasOffset
+                )
+
+            # SW instruction
+            elif opcode == "0100011":
+                rd = instruction[20:25]
+
+                return Instruction(
+                    PC=PC,
+                    funct7=funct7,
+                    rs2=rs2,
+                    rs1=rs1,
+                    rd=rd,
+                    funct3=funct3,
+                    opcode=opcode,
+                    hasOffset=hasOffset
+                )
 
     def __str__(self):
         if self.hasOffset:
-            return f"<[PC={self.PC}] offset:{self.offset} rs1:{self.rs1} funct3:{self.funct3} rd:{self.rd} opcode:{self.opcode}>"
+            if self.opcode == "0000011" and self.funct3 == "010":
+                return f"<[PC={self.PC}] offset:{self.offset} rs1:{self.rs1} funct3:{self.funct3} rd:{self.rd} opcode:{self.opcode}>"
+            elif self.opcode == "0100011" and self.funct3 == "010":
+                return f"<[PC={self.PC}] offset:{self.offset} rs1:{self.rs1} funct3:{self.funct3} rs2:{self.rs2} opcode:{self.opcode}>"
         else:
             return f"<[PC={self.PC}] funct7:{self.funct7} rs2:{self.rs2} rs1:{self.rs1} funct3:{self.funct3} rd:{self.rd} opcode:{self.opcode}>"

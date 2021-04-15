@@ -62,7 +62,11 @@ def assembler(filename):
         },
         "LW": {
             "funct3": "010",
-            "opcode": "1010011"
+            "opcode": "0000011"
+        },
+        "SW": {
+            "funct3": "010",
+            "opcode": "0100011"
         },
     }
 
@@ -84,6 +88,15 @@ def assembler(filename):
 
             assembly.append(
                 offset + rs1 + mapping["LW"]["funct3"] + rd + mapping["LW"]["opcode"])
+        elif "SW" in inst:
+            offset, base = inst[2].split('(')
+
+            offset = pad(bin(int(offset)), 12)
+            base = pad(bin(int(base.replace(')', ''))), 5)
+            rs2 = pad(bin(int(inst[1])), 5)
+
+            assembly.append(
+                offset[0:7] + rs2 + base + mapping["SW"]["funct3"] + offset[7:] + mapping["SW"]["opcode"])
         else:
             rd = pad(bin(int(inst[1])), 5)
             rs1 = pad(bin(int(inst[2])), 5)
@@ -93,17 +106,17 @@ def assembler(filename):
                             mapping[inst[0]]["funct3"] + rd + mapping[inst[0]]["opcode"])
 
     # Write the assembled binary into an output bin file
-    with open(f"build/{outFile}", 'w') as destFile:
+    with open(f"../build/{outFile}", 'w') as destFile:
         for idx, inst in enumerate(assembly):
             destFile.write(inst)
             if idx < len(assembly) - 1:
                 destFile.write("\n")
 
-    return f"build/{outFile}"
+    return f"../build/{outFile}"
 
 
 # Check if a program was fed it, otherwise use a default
 if len(sys.argv) < 2:
-    print(f"Output generated to: {assembler('src/riscv_program.asm')}")
+    print(f"Output generated to: {assembler('../src/riscv_program.asm')}")
 else:
     print(f"Output generated to: {assembler(sys.argv[1])}")
