@@ -52,7 +52,7 @@ class Register:
             self._busy = False
 
     def __str__(self):
-        return f"[{'BUSY' if self._busy else 'FREE'}] Register: {self._name}: {self._busy}"
+        return f"[{'BUSY' if self._busy else 'FREE'}] Register: {self._name}"
 
 
 # Data structure to represent the ARF. Individual registers are stored in a dictionary
@@ -67,7 +67,7 @@ class RegisterBank:
 
         # Initialize the register with some initial value
         for i in range(0, size):
-            self._bank.update({f"R{i}": Register(f"R{i}", init[i], False)})
+            self._bank.update({f"x{i}": Register(f"x{i}", init[i], False)})
 
     # Function to access a particular register, using its name
     def get_register(self, name):

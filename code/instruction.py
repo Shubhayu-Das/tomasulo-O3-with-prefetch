@@ -174,10 +174,10 @@ class Instruction:
             return -1
 
         funct7 = instruction[0:7]
-        rs2 = f"R{int(instruction[7:12], 2)}"
-        rs1 = f"R{int(instruction[12:17], 2)}"
+        rs2 = f"x{int(instruction[7:12], 2)}"
+        rs1 = f"x{int(instruction[12:17], 2)}"
         funct3 = instruction[17:20]
-        rd = f"R{int(instruction[20:25], 2)}"
+        rd = f"x{int(instruction[20:25], 2)}"
         opcode = instruction[25:32]
         hasOffset = False
 
@@ -205,6 +205,17 @@ class Instruction:
                 rd = instruction[20:25]
 
                 return Instruction(
+                    PC=PC,
+                    funct7=funct7,
+                    rs2=rs2,
+                    rs1=rs1,
+                    rd=rd,
+                    funct3=funct3,
+                    opcode=opcode,
+                    hasOffset=hasOffset
+                )
+        else:
+            return Instruction(
                     PC=PC,
                     funct7=funct7,
                     rs2=rs2,

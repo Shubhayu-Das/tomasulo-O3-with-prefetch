@@ -16,18 +16,24 @@ from instruction import Instruction
 
 # Data structure to represent every entry in the load/store buffer
 class LoadStoreBufferEntry:
-    def __init__(self, instr, ARFTable, memory, memfile=None):
-        self._instruction = instr
+    def __init__(self, instr, ARFTable, memory):
         self._busy = True
-        self._dest = instr.rd
+        self._instruction = instr
         self._offset = int(instr.offset, 2)
-        self._src_reg = ARFTable.get_register(instr.rs1)
+        self._base = ARFTable.get_register(instr.rs1)
         self._memory = memory
+        self._is_store = instr.disassemble()["command"] == "SW"
+
+        if self._is_store:
+            self._data_reg = ARFTable.get_register(instr.rs2)
+            self._dest = "memory"
+        else:
+            self._dest = instr.rd
 
     # Function to tell whether the instruction is ready for executing
     # This function checks if the source register is ready
     def is_executeable(self):
-        return not self._src_reg.is_busy()
+        return not self._base.is_busy()
 
     # Function to tell is the particular slot is busy or not. Pretty much vestigial
     # in my implementation
@@ -41,13 +47,28 @@ class LoadStoreBufferEntry:
     # Function to get the result of the operation, when requested for
     # This function is capable of handling extra spaces, which can be added
     # to improve readability
+    # Added support for SW as well
     def get_result(self):
-        index = self._src_reg.get_value() + self._offset
-        if index < len(self._memory):
-            self._busy = False
-            return int(self._memory[index].replace(" ", "").strip(), 2)
-        else:
+        if self._base.is_busy():
             return False
+
+        if self._is_store:
+            if self._data_reg.is_busy():
+                return False
+                
+            index = self._base.get_value() + self._offset
+            print(self._data_reg)
+            data = self._data_reg.get_value()
+            self._busy = False
+            return index, data
+        else:
+            index = self._base.get_value() + self._offset
+            if index < len(self._memory):
+                self._busy = False
+                return int(self._memory[index].replace(" ", "").strip(), 2)
+            else:
+                print("Index out of data memory range")
+                return False
 
     def __str__(self):
         return f"<LW/SW buffer entry: {self._instruction.dissamble()}, {self._busy}>"
@@ -63,7 +84,6 @@ class LoadStoreBuffer:
 
         # Load the memory into...memory
         if os.path.exists(memoryFile):
-            self.fileName = memoryFile
             with open(memoryFile, 'r') as dataMemory:
                 self._memory = dataMemory.readlines()
         else:

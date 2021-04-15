@@ -2,10 +2,8 @@
 
 ### Things to update and fix
 
-1. Implement store word,
-2. two's complement in ```assembler.py```, ```instruction.py```, any other place where integer decoding is happening(```gui.py```?)
-3. ```assembler.py```, ```instruction.py``` --> add support for SW
-4. ```ls_buffer.py``` --> add support for SW
+*Support for SW added by Shubhayu on 16-04-21*
+1. Convert all integer to binary conversions to 2's complement format
 
 ---------------------------------
 

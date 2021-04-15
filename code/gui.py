@@ -446,8 +446,8 @@ class Graphics():
                 data.append(str(entry.is_busy())[0])
                 data.append(entry._dest)
 
-                data.append(f"{4*entry._offset}+{entry._src_reg.get_name()}")
-                data.append(entry._src_reg.get_name())
+                data.append(f"{4*entry._offset}+{entry._base.get_name()}")
+                data.append(entry._base.get_name())
 
             else:
                 data = [""] * 5

@@ -25,13 +25,14 @@ from gui import Graphics
 
 
 class Tomasulo:
-    def __init__(self, program, data_mem):
+    def __init__(self, program_src, data_mem):
         # Global variables that are needed throughout here
         self._instructions = []
         self._historyBuffer = []
         self._clock_cycle = 0
         self._next_event = False
         self._n_complete = 0
+        self._data_mem_src = data_mem
 
         # Creating objects of the functional components
         self._ARF = ARF(size=10, init=[12, 16, 45, 5, 3, 4, 1, 2, 2, 3])
@@ -39,7 +40,7 @@ class Tomasulo:
         self._ADD_RS = ReservationStation(constants.ADD_SUB, size=3)
         self._MUL_RS = ReservationStation(constants.MUL_DIV, size=2)
 
-        self._LSQ = LoadStoreBuffer(size=3, memoryFile=data_mem_src)
+        self._LSQ = LoadStoreBuffer(size=3, memoryFile=data_mem)
         self._ROB = ROBTable(size=8)
 
         # Load in the program and create the instruction table accordingly
@@ -82,9 +83,11 @@ class Tomasulo:
                 if RS:
                     if not RS.is_busy():
                         if RS.add_entry(instruction, self._ARF):
-                            destination = self._ARF.get_register(
+                            if instruction_type != "SW":
+                                destination = self._ARF.get_register(
                                 it_entry._instruction.rd)
-                            destination.set_link(self._ROB.add_entry(
+
+                                destination.set_link(self._ROB.add_entry(
                                 it_entry._instruction, destination))
 
                             if RS in [self._ADD_RS, self._MUL_RS]:
@@ -106,12 +109,14 @@ class Tomasulo:
                         rs_entry._instruction)
 
                     if it_entry.get_state() == constants.RunState.RS and rs_entry.is_executeable():
-                        it_entry.ex_start(self._clock_cycle)
-                        it_entry.update_result(rs_entry.get_result())
-                        RS.remove_entry(rs_entry.get_inst())
+                        data = rs_entry.get_result()
+                        if data:
+                            it_entry.ex_start(self._clock_cycle)
+                            it_entry.update_result(data)
+                            RS.remove_entry(rs_entry.get_inst())
 
-                        self._next_event = True
-                        break
+                            self._next_event = True
+                            break
 
         for it_entry in self._instructionTable.get_entries():
             if it_entry.get_state() == constants.RunState.EX_START:
@@ -122,17 +127,22 @@ class Tomasulo:
     def tryCDBBroadcast(self):
         for it_entry in self._instructionTable.get_entries():
             if it_entry.get_state() == constants.RunState.EX_END:
-                it_entry.cdb_write(self._clock_cycle)
+                if it_entry.get_inst().disassemble()["command"] == "SW":
+                    if it_entry.mem_write(self._data_mem_src):
+                        it_entry.cdb_write("-")
+                        it_entry.commit(self._clock_cycle)
+                else:
+                    it_entry.cdb_write(self._clock_cycle)
 
-                value = it_entry.get_result()
-                robEntry = self._ROB.update_value(it_entry.get_inst(), value)
+                    value = it_entry.get_result()
+                    robEntry = self._ROB.update_value(it_entry.get_inst(), value)
 
-                if robEntry:
-                    for RS in [self._ADD_RS, self._MUL_RS]:
-                        RS.updateEntries(self._ARF, robEntry)
+                    if robEntry:
+                        for RS in [self._ADD_RS, self._MUL_RS]:
+                            RS.updateEntries(self._ARF, robEntry)
 
-                self._next_event = True
-                return robEntry
+                    self._next_event = True
+                    return robEntry
 
     # Function to commit the result of an instruction, if it has completed CDB broadcast
     # and is at the tail of the self._ROB

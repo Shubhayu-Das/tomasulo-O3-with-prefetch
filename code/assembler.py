@@ -115,8 +115,9 @@ def assembler(filename):
     return f"../build/{outFile}"
 
 
-# Check if a program was fed it, otherwise use a default
-if len(sys.argv) < 2:
-    print(f"Output generated to: {assembler('../src/riscv_program.asm')}")
-else:
-    print(f"Output generated to: {assembler(sys.argv[1])}")
+if __name__ == "__main__":
+    # Check if a program was fed it, otherwise use a default
+    if len(sys.argv) < 2:
+        print(f"Output generated to: {assembler('../src/riscv_program.asm')}")
+    else:
+        print(f"Output generated to: {assembler(sys.argv[1])}")
