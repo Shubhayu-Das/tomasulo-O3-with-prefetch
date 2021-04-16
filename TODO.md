@@ -2,8 +2,11 @@
 
 ### Things to update and fix
 
-*Support for SW added by Shubhayu on 16-04-21*
+*Support for SW added by Shubhayu on 16-04-21 0200*
+*Added dedicated Memory controller, as the only point of access to memory: Shubhayu on 16-04-21 1030*
+
 1. Convert all integer to binary conversions to 2's complement format
+2. Add support for caches in memory controller, load_memory must return data source too
 
 ---------------------------------
 
@@ -38,28 +41,6 @@
             # For GUI
             def get_mem(self):
                 return sef._mem
-    ```
-
-3. Add memory controller interface, which contains 2 levels of cache and data memory. Includes interfaces for using prefetching and replacement policies.
-    ```python
-    class MemoryController:
-
-        # l1 -> cache object
-        # l2 -> cache object
-
-        # data_memory = load from file
-        # replacement -> LRU
-        # prefetchers -> None
-
-        def get_from_addr(addr):
-            # check_L1
-            
-            # check_prefetch
-            # check_L2
-            
-            # ld_from_memory
-
-            return data_source, value
     ```
 
 4. Implement basic structure of the prefetcher(after all of above are complete). The base line prefetcher will be next line prefetcher only.

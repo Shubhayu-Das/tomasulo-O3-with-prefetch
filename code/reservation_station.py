@@ -64,7 +64,7 @@ class ReservationStationEntry:
             return 0
 
     # Function to return the resultant value of the instruction
-    def get_result(self):
+    def get_result(self, args=None):
         return self._value
 
     # Function to return the Instruction associated with this entry

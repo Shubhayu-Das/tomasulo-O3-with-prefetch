@@ -13,6 +13,8 @@ import PySimpleGUI as sg
 
 # Import all the functional components
 from register_bank import RegisterBank as ARF
+from memory_controller import MemoryController
+
 from instruction import Instruction
 from reservation_station import ReservationStation, ReservationStationEntry
 from instruction_table import InstructionTable, InstructionTableEntry
@@ -33,6 +35,9 @@ class Tomasulo:
         self._next_event = False
         self._n_complete = 0
         self._data_mem_src = data_mem
+
+        # Creating objects related to the memory
+        self._Memory_Controller = MemoryController(data_mem)
 
         # Creating objects of the functional components
         self._ARF = ARF(size=10, init=[12, 16, 45, 5, 3, 4, 1, 2, 2, 3])
@@ -109,7 +114,7 @@ class Tomasulo:
                         rs_entry._instruction)
 
                     if it_entry.get_state() == constants.RunState.RS and rs_entry.is_executeable():
-                        data = rs_entry.get_result()
+                        data = rs_entry.get_result(self._Memory_Controller)
                         if data:
                             it_entry.ex_start(self._clock_cycle)
                             it_entry.update_result(data)
@@ -127,8 +132,9 @@ class Tomasulo:
     def tryCDBBroadcast(self):
         for it_entry in self._instructionTable.get_entries():
             if it_entry.get_state() == constants.RunState.EX_END:
+
                 if it_entry.get_inst().disassemble()["command"] == "SW":
-                    if it_entry.mem_write(self._data_mem_src):
+                    if self._Memory_Controller.mem_write(it_entry.get_result()):
                         it_entry.cdb_write("-")
                         it_entry.commit(self._clock_cycle)
                 else:
@@ -192,6 +198,7 @@ class Tomasulo:
             },
             copy.deepcopy(self._ARF),
             copy.deepcopy(self._LSQ),
+            copy.deepcopy(self._Memory_Controller),
             copy.deepcopy(self._next_event)
         ])
 
@@ -233,6 +240,10 @@ class Tomasulo:
     # Get the load/store buffer object
     def get_lsq(self):
         return self._LSQ
+
+    # Get the memory controller object
+    def get_mem_ctl(self):
+        return self._Memory_Controller
 
 
 if __name__ == "__main__":
@@ -308,7 +319,8 @@ if __name__ == "__main__":
                     history[index][1],
                     resStats=history[index][2],
                     ARF=history[index][3],
-                    LS_Buffer=history[index][4]
+                    LS_Buffer=history[index][4],
+                    MemCtl=history[index][5]
                 )
 
                 done = True
@@ -350,7 +362,8 @@ if __name__ == "__main__":
                         machine.get_rob(),
                         machine.get_all_rs(),
                         machine.get_arf(),
-                        machine.get_lsq()
+                        machine.get_lsq(),
+                        machine.get_mem_ctl()
                     )
 
                     window.read(timeout=1)
@@ -374,7 +387,8 @@ if __name__ == "__main__":
                     history[index][1],
                     resStats=history[index][2],
                     ARF=history[index][3],
-                    LS_Buffer=history[index][4]
+                    LS_Buffer=history[index][4],
+                    MemCtl=history[index][5]
                 )
 
                 backwards -= 1
@@ -396,7 +410,8 @@ if __name__ == "__main__":
                     machine.get_rob(),
                     machine.get_all_rs(),
                     machine.get_arf(),
-                    machine.get_lsq()
+                    machine.get_lsq(),
+                    machine.get_mem_ctl()
                 )
 
     window.close()

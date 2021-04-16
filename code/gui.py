@@ -455,8 +455,16 @@ class Graphics():
             insts.append(data)
             colors.append("")
 
+        self._machine_state["Load Store Buffer"]["contents"] = insts
+        self._machine_state["Load Store Buffer"]["colors"] = colors
+
+    # Function to update the state of the memory, using the memory controller
+    # TODO: add display stuff for caches
+    def __convertMemCtl(self, controller):
         mem = []
-        for addr, mem_row in enumerate(LW_SW.get_memory()):
+        colors = []
+
+        for addr, mem_row in enumerate(controller.get_memory()):
             data = []
             data.append(hex(addr))
             data.append(mem_row)
@@ -464,14 +472,14 @@ class Graphics():
             data.append(int(mem_row, 2))
 
             mem.append(data)
-
-        self._machine_state["Load Store Buffer"]["contents"] = insts
-        self._machine_state["Load Store Buffer"]["colors"] = colors
+            colors.append("")
+        
         self._machine_state["metadata"]["data-mem"]["contents"] = mem
         self._machine_state["metadata"]["data-mem"]["colors"] = colors
 
+
     # Function to call the individual update blocks. This function is called from the main event loop
-    def updateContents(self, window, cycle, instructionTable=None, ROB=None, resStats=None, ARF=None, LS_Buffer=None):
+    def updateContents(self, window, cycle, instructionTable=None, ROB=None, resStats=None, ARF=None, LS_Buffer=None, MemCtl=None):
         self._machine_state["metadata"]["cycle"] = cycle
         window["cycle_number"].update(
             value=self._machine_state["metadata"]["cycle"])
@@ -498,6 +506,9 @@ class Graphics():
             self.__convertLSBuffer(LS_Buffer)
             window['ls_buffer_table'].update(
                 self._machine_state["Load Store Buffer"]["contents"])
+        
+        if MemCtl:
+            self.__convertMemCtl(MemCtl)
             window['data_mem_table'].update(
                 self._machine_state["metadata"]["data-mem"]["contents"])
 

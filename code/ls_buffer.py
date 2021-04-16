@@ -9,19 +9,17 @@ In this implementaito, the LoadStoreBuffer also contains the memory that is used
 This is essentially a counterpart of the RS, for LW/SW instructions
 '''
 
-import os
 from constants import DEBUG
 from instruction import Instruction
 
 
 # Data structure to represent every entry in the load/store buffer
 class LoadStoreBufferEntry:
-    def __init__(self, instr, ARFTable, memory):
+    def __init__(self, instr, ARFTable):
         self._busy = True
         self._instruction = instr
         self._offset = int(instr.offset, 2)
         self._base = ARFTable.get_register(instr.rs1)
-        self._memory = memory
         self._is_store = instr.disassemble()["command"] == "SW"
 
         if self._is_store:
@@ -48,7 +46,7 @@ class LoadStoreBufferEntry:
     # This function is capable of handling extra spaces, which can be added
     # to improve readability
     # Added support for SW as well
-    def get_result(self):
+    def get_result(self, memCtl=None):
         if self._base.is_busy():
             return False
 
@@ -57,18 +55,16 @@ class LoadStoreBufferEntry:
                 return False
                 
             index = self._base.get_value() + self._offset
-            print(self._data_reg)
             data = self._data_reg.get_value()
             self._busy = False
             return index, data
         else:
             index = self._base.get_value() + self._offset
-            if index < len(self._memory):
+            data = memCtl.get_entry(index)
+            if data:
                 self._busy = False
-                return int(self._memory[index].replace(" ", "").strip(), 2)
-            else:
-                print("Index out of data memory range")
-                return False
+            
+            return data
 
     def __str__(self):
         return f"<LW/SW buffer entry: {self._instruction.dissamble()}, {self._busy}>"
@@ -81,16 +77,6 @@ class LoadStoreBuffer:
         self._buffer = [None for _ in range(size)]
         self._is_full = False
         self._index = 0
-
-        # Load the memory into...memory
-        if os.path.exists(memoryFile):
-            with open(memoryFile, 'r') as dataMemory:
-                self._memory = dataMemory.readlines()
-        else:
-            print("Memory file not found")
-            return
-
-        self._memory = [row.replace(" ", "") for row in self._memory]
 
     # Function to find the next free index to make an entry.
     # Could have simply ripped of a circular buffer, but meh
@@ -121,7 +107,7 @@ class LoadStoreBuffer:
             return False
 
         if isinstance(instr, Instruction):
-            entry = LoadStoreBufferEntry(instr, ARFTable, self._memory)
+            entry = LoadStoreBufferEntry(instr, ARFTable)
 
         self._buffer[self._index] = entry
         if DEBUG:
@@ -161,9 +147,6 @@ class LoadStoreBuffer:
     # Function to get all the entries, for display purpose only
     def get_entries(self):
         return self._buffer
-
-    def get_memory(self):
-        return self._memory
 
     def __str__(self):
         return f"<LW/SW Buffer>"

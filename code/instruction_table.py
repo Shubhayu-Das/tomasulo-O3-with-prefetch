@@ -79,23 +79,6 @@ class InstructionTableEntry:
     def get_result(self):
         return self._value
 
-    # Function to write back to data memory, enabling support for SW
-    def mem_write(self, filename):
-        index, data = self._value
-        print(f"{index} {data}")
-
-        with open(filename, 'r') as dataFile:
-            mem_content = dataFile.readlines()
-        
-        if index > len(mem_content):
-            print(f"Index out of mem range: {index} > {len(mem_content)}! Error")
-            return False
-        else:
-            mem_content[index] = f"{pad(bin(data), 32)}\n"
-            with open(filename, 'w') as dataFile:
-                dataFile.writelines(mem_content)    
-            return True        
-
     def __str__(self):
         return f"{self._instruction.str_disassemble()}\t\t{self._rs_issue_cycle} {self._exec_start}\
          {self._exec_complete} {self._cdb_write} {self._commit}"
