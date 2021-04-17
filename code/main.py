@@ -37,7 +37,7 @@ class Tomasulo:
         self._data_mem_src = data_mem
 
         # Creating objects related to the memory
-        self._Memory_Controller = MemoryController(data_mem)
+        self._Memory_Controller = MemoryController(data_mem, True, True)
 
         # Creating objects of the functional components
         self._ARF = ARF(size=10, init=[12, 16, 45, 5, 3, 4, 1, 2, 2, 3])

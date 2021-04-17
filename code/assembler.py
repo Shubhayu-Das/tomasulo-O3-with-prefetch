@@ -4,11 +4,12 @@ MIT Licensed by Shubhayu Das, copyright 2021
 Developed for Processor Architecture course assignment 1 - Tomasulo Out-Of-Order Machine
 
 This is the script for a basic RISC-V assembler. It only support LW, ADD, SUB, MUL and DIV instructions so far.
-All are integer instructions only, although, the program by itself supports floating point numbers(cheating)
+All are integer instructions only. Execution generates integers only [updated].
 '''
 import re
 import sys
 
+from helpers import pad
 
 # Function to split the instruction string into opcode and registers(and offset if needed)
 # This function is capable of handling comments too
@@ -21,16 +22,6 @@ def split_operands(program):
     program = [inst for inst in program if inst]
 
     return program
-
-
-# Zero pad the binary numbers appropriately
-def pad(number, n):
-    number = number[2:]
-    while len(number) < n:
-        number = "0" + number
-
-    return number
-
 
 # The main assembler function, which contains the mapping between the instructions and their
 # opcodes, function-7 and function-3 fields

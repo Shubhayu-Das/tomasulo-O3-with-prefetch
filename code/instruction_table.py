@@ -15,7 +15,7 @@ This is by far the most important class, in terms of maintaining execution order
 
 from constants import DEBUG, NumCycles, RunState
 from instruction import Instruction
-from assembler import pad
+from helpers import pad
 
 
 # Data structure to represent each row of the instruction table

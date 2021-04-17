@@ -9,7 +9,7 @@ This file contains some important constants that are used to modify the behaviou
 # Some variables that affect the output of the program
 # Set DEBUG to True to enable text output to the terminal
 DEBUG = False
-VERSION = "1.1.2"
+VERSION = "1.2.0"
 
 # Font size for the text in the GUI
 # Decrease if content doesn't seem to fitting in properly
@@ -21,6 +21,9 @@ CYCLE_DURATION = 1000    # in ms
 
 # Bit width of the data used by the processor
 WORD_SIZE = 32
+
+L1D_CACHE_SIZE = 2
+L2D_CACHE_SIZE = 4
 
 # The number of cycles taken by each supported instruction to execute
 NumCycles = {

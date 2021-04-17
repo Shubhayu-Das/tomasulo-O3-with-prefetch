@@ -60,7 +60,7 @@ class LoadStoreBufferEntry:
             return index, data
         else:
             index = self._base.get_value() + self._offset
-            data = memCtl.get_entry(index)
+            data = memCtl.get_memory_entry(index)
             if data:
                 self._busy = False
             

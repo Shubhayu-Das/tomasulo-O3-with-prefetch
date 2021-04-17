@@ -1,12 +1,20 @@
 import os
-from assembler import pad
-from constants import WORD_SIZE
+from helpers import pad
+from constants import WORD_SIZE, L1D_CACHE_SIZE, L2D_CACHE_SIZE
+
+from cache import Cache
 
 
 class MemoryController:
-    def __init__(self, mem_file, L1=None, L2=None):
-        self._l1 = L1
-        self._l2 = L2
+    def __init__(self, mem_file, enable_L1=False, enable_L2=False):
+        self_L1D = None
+        self_L2D = None
+        
+        if enable_L1:
+            self._L1D = Cache(L1D_CACHE_SIZE, "L1D")
+        
+        if enable_L2:
+            self._L2D = Cache(L2D_CACHE_SIZE, "L2D")
 
         if os.path.exists(mem_file):
             self._mem_file = mem_file
@@ -45,16 +53,26 @@ class MemoryController:
         if addr > self._size:
             return False
 
+        # TODO: add caches in here
+
         self._memory[addr] = data
         self.save_memory()
         return True
 
-    def get_entry(self, addr):
+    def get_memory_entry(self, addr):
         if addr > self._size:
             return False
+
+        # TODO: add caches in here
 
         return self._memory[addr]
 
     # Get the entire memory, for the GUI
     def get_memory(self):
         return [f"0b{pad(bin(line), WORD_SIZE)}" for line in self._memory]
+
+    def get_l1_cache(self):
+        return self._L1D.get_cache()
+
+    def get_l2_cache(self):
+        return self._L2D.get_cache()

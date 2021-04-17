@@ -12,7 +12,7 @@ Feel free to raise Issues for feature requests and bugs.
 The original code is publicly available [here](https://gitlab.com/shubhayu-das/tomasulo-o3-processor-simulator). We will make the original repo public on Github after our course is complete.
 
 
-Version: 1.1.2
+Version: 1.2.0
 
 -------------------
 ### Students

@@ -51,10 +51,10 @@ class ReservationStationEntry:
     def __exec(self):
         command = self._instruction.disassemble()["command"]
         lookup = {
-            "ADD": lambda x, y: round(x+y, 2),
-            "SUB": lambda x, y: round(x-y, 2),
-            "MUL": lambda x, y: round(x*y, 2),
-            "DIV": lambda x, y: round(x/y, 2),
+            "ADD": lambda x, y: int(x+y),
+            "SUB": lambda x, y: int(x-y),
+            "MUL": lambda x, y: int(x*y),
+            "DIV": lambda x, y: int(x/y),
         }
 
         try:
