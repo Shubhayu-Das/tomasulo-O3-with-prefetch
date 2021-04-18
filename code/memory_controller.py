@@ -1,18 +1,18 @@
 import os
 from helpers import pad
-from constants import WORD_SIZE, L1D_CACHE_SIZE, L2D_CACHE_SIZE
+from constants import WORD_SIZE, L1D_CACHE_SIZE, L2D_CACHE_SIZE, DEBUG
 
 from cache import Cache
 
 
 class MemoryController:
     def __init__(self, mem_file, enable_L1=False, enable_L2=False):
-        self_L1D = None
-        self_L2D = None
-        
+        self._L1D = None
+        self._L2D = None
+
         if enable_L1:
             self._L1D = Cache(L1D_CACHE_SIZE, "L1D")
-        
+
         if enable_L2:
             self._L2D = Cache(L2D_CACHE_SIZE, "L2D")
 
@@ -35,10 +35,12 @@ class MemoryController:
         self._memory = [int(line, 2) for line in self._memory]
 
         self._size = len(self._memory)
-        print("Memory loaded of size: ", self._size)
+        if DEBUG:
+            print("Memory loaded of size: ", self._size)
 
     def save_memory(self):
-        write_buffer = [pad(bin(line), WORD_SIZE)+"\n" for line in self._memory]
+        write_buffer = [pad(bin(line), WORD_SIZE) +
+                        "\n" for line in self._memory]
         if len(write_buffer) != self._size:
             return False
 
@@ -64,8 +66,12 @@ class MemoryController:
             return False
 
         # TODO: add caches in here
+        # TODO: This function MUST return an array of the form:
+        # [data_at_location, n_cycles_needed_for_access]
 
-        return self._memory[addr]
+        # As a proof of working, I have randomly set 10 for now
+        # The second value will change depending on cache config
+        return [self._memory[addr], 10]
 
     # Get the entire memory, for the GUI
     def get_memory(self):

@@ -42,7 +42,7 @@ instruction - funct7 - rs2 - rs1 - funct3 - rd - opcode
     ADD      0000000 - src2 - src1 - 000 - dest - 0110011
     SUB      0100000 - src2 - src1 - 000 - dest - 0110011
     LW        offset[31:20] - src1 - 010 - dest - 0000011
-    SW       os[11:5] - src - base - 010 -os[4:0]-0100011 
+    SW       os[11:5] - src - base - 010 -os[4:0]-0100011
 
     MUL      0000001 - src2 - src1 - 000 - dest - 0110011
     DIV      0000001 - src2 - src1 - 100 - dest - 0110011
@@ -121,7 +121,7 @@ class Instruction:
                 }
 
             else:
-                return -1            
+                return -1
 
         else:
             if self.opcode == "0110011":
@@ -216,15 +216,15 @@ class Instruction:
                 )
         else:
             return Instruction(
-                    PC=PC,
-                    funct7=funct7,
-                    rs2=rs2,
-                    rs1=rs1,
-                    rd=rd,
-                    funct3=funct3,
-                    opcode=opcode,
-                    hasOffset=hasOffset
-                )
+                PC=PC,
+                funct7=funct7,
+                rs2=rs2,
+                rs1=rs1,
+                rd=rd,
+                funct3=funct3,
+                opcode=opcode,
+                hasOffset=hasOffset
+            )
 
     def __str__(self):
         if self.hasOffset:

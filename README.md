@@ -98,6 +98,18 @@ Summary to execute program:
 
 - To load in custom data memory along with assembled program: ```python main.py build/<filename.bin> <data_mem.data>```
 
+### GUI doesn't open up
+
+The GUI library might throw an error saying that the DISPLAY environment variable is not available. To fix this, set ```DISPLAY=":0"```. In Ubuntu(Linux in general), one way to do this is:
+```bash
+$ echo 'export DISPLAY=":0"' >> ~/.profile
+$ source ~/.profile
+# Just to confirm that the env is really set
+$ echo $DISPLAY
+```
+
+Try running the program after this, it should not cause any problems. You can remove that line from ```.profile``` later on, if needed. That line of code selects the monitor on which the GUI will be displayed. So, if you have a multi-monitor display, you can remove it after running this program. You will have to run ```source ~/.profile``` after removing the line from the file.
+
 ### Detailed instructions:
 - Place your ```asm``` program in the src folder.
 - Open a terminal and navigate to the ```code/``` folder. Execute: ```python assembler.py src/<filename.asm>```.

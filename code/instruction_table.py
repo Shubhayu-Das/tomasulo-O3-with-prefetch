@@ -30,8 +30,19 @@ class InstructionTableEntry:
         self._cdb_write = ""
         self._commit = ""
         self._counter = 0
-        self._max_ticks = NumCycles[instruction.disassemble()["command"]]
         self._value = None
+
+        # This needs to be varied for memory accesses
+        self._max_ticks = NumCycles[instruction.disassemble()["command"]]
+
+    # Provision to vary the number of cycles needed to perform memory accesses
+    # Might be useful later for branch instructions
+    def set_max_tick(self, n_ticks):
+        if self._instruction.disassemble()["command"] not in ["LW", "SW"]:
+            return False
+
+        self._max_ticks = n_ticks
+        return True
 
     # Function to record the issue of an instruction into the RS
     def rs_issue(self, cycle):

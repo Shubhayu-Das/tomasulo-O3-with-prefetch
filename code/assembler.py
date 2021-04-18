@@ -13,6 +13,8 @@ from helpers import pad
 
 # Function to split the instruction string into opcode and registers(and offset if needed)
 # This function is capable of handling comments too
+
+
 def split_operands(program):
     program = [inst.split(";")[0] for inst in program]
     program = list(filter(None, program))
@@ -25,6 +27,8 @@ def split_operands(program):
 
 # The main assembler function, which contains the mapping between the instructions and their
 # opcodes, function-7 and function-3 fields
+
+
 def assembler(filename):
     outFile = ".".join([filename.split("/")[-1].split(".")[0], "bin"])
     program = []

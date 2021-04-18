@@ -37,7 +37,7 @@ class Tomasulo:
         self._data_mem_src = data_mem
 
         # Creating objects related to the memory
-        self._Memory_Controller = MemoryController(data_mem, True, True)
+        self._memory_controller = MemoryController(data_mem, True, True)
 
         # Creating objects of the functional components
         self._ARF = ARF(size=10, init=[12, 16, 45, 5, 3, 4, 1, 2, 2, 3])
@@ -88,18 +88,20 @@ class Tomasulo:
                 if RS:
                     if not RS.is_busy():
                         if RS.add_entry(instruction, self._ARF):
-                            if instruction_type != "SW":
-                                destination = self._ARF.get_register(
+                            if instruction_type == "SW":
+                                break
+
+                            destination = self._ARF.get_register(
                                 it_entry._instruction.rd)
 
-                                destination.set_link(self._ROB.add_entry(
+                            destination.set_link(self._ROB.add_entry(
                                 it_entry._instruction, destination))
 
-                            if RS in [self._ADD_RS, self._MUL_RS]:
-                                RS.updateEntries(self._ARF, robEntry)
+                        if RS in [self._ADD_RS, self._MUL_RS]:
+                            RS.updateEntries(self._ARF, robEntry)
 
-                            it_entry.rs_issue(self._clock_cycle)
-                            self._next_event = True
+                        it_entry.rs_issue(self._clock_cycle)
+                        self._next_event = True
 
                         break
 
@@ -114,9 +116,16 @@ class Tomasulo:
                         rs_entry._instruction)
 
                     if it_entry.get_state() == constants.RunState.RS and rs_entry.is_executeable():
-                        data = rs_entry.get_result(self._Memory_Controller)
+                        data = rs_entry.get_result(self._memory_controller)
                         if data:
                             it_entry.ex_start(self._clock_cycle)
+
+                            # Separate handling of memory accesses, where the number of clock
+                            # cycles needed might vary
+                            if isinstance(data, list) and len(data) > 0:
+                                data, n_cycles_needed = data
+                                it_entry.set_max_tick(n_cycles_needed)
+
                             it_entry.update_result(data)
                             RS.remove_entry(rs_entry.get_inst())
 
@@ -134,14 +143,15 @@ class Tomasulo:
             if it_entry.get_state() == constants.RunState.EX_END:
 
                 if it_entry.get_inst().disassemble()["command"] == "SW":
-                    if self._Memory_Controller.mem_write(it_entry.get_result()):
+                    if self._memory_controller.mem_write(it_entry.get_result()):
                         it_entry.cdb_write("-")
                         it_entry.commit(self._clock_cycle)
                 else:
                     it_entry.cdb_write(self._clock_cycle)
 
                     value = it_entry.get_result()
-                    robEntry = self._ROB.update_value(it_entry.get_inst(), value)
+                    robEntry = self._ROB.update_value(
+                        it_entry.get_inst(), value)
 
                     if robEntry:
                         for RS in [self._ADD_RS, self._MUL_RS]:
@@ -198,7 +208,7 @@ class Tomasulo:
             },
             copy.deepcopy(self._ARF),
             copy.deepcopy(self._LSQ),
-            copy.deepcopy(self._Memory_Controller),
+            copy.deepcopy(self._memory_controller),
             copy.deepcopy(self._next_event)
         ])
 
@@ -243,7 +253,7 @@ class Tomasulo:
 
     # Get the memory controller object
     def get_mem_ctl(self):
-        return self._Memory_Controller
+        return self._memory_controller
 
 
 if __name__ == "__main__":

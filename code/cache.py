@@ -1,5 +1,6 @@
 from collections import defaultdict
 
+
 class CacheEntry:
     def __init__(self):
         self._tag = None
@@ -36,10 +37,13 @@ class CacheEntry:
 
 
 class Cache:
-    def __init__(self, size, name):
-        self._mem = defaultdict(None, {})
+    def __init__(self, size, name, prefetcher=None, replacement=None):
+        # TODO: decide on number of ways
+        self._mem = []
         self._size = size
         self._name = name
+        self._prefetcher = prefetcher
+        self._replacement_policy = replacement
 
     def set_entry(self, entry, addr):
         pass
@@ -48,6 +52,10 @@ class Cache:
         pass
 
     def remove_entry(self, addr):
+        pass
+
+    # Uses replacement policy to make entry into cache
+    def add_entry(self, data, addr):
         pass
 
     def get_name(self):

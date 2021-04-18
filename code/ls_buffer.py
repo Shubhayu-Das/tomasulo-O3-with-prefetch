@@ -53,17 +53,19 @@ class LoadStoreBufferEntry:
         if self._is_store:
             if self._data_reg.is_busy():
                 return False
-                
+
             index = self._base.get_value() + self._offset
             data = self._data_reg.get_value()
             self._busy = False
             return index, data
         else:
             index = self._base.get_value() + self._offset
+
+            # Handing over all memory accesses to the memory controller
             data = memCtl.get_memory_entry(index)
             if data:
                 self._busy = False
-            
+
             return data
 
     def __str__(self):

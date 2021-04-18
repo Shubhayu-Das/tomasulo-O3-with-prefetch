@@ -473,12 +473,12 @@ class Graphics():
 
             mem.append(data)
             colors.append("")
-        
+
         self._machine_state["metadata"]["data-mem"]["contents"] = mem
         self._machine_state["metadata"]["data-mem"]["colors"] = colors
 
-
     # Function to call the individual update blocks. This function is called from the main event loop
+
     def updateContents(self, window, cycle, instructionTable=None, ROB=None, resStats=None, ARF=None, LS_Buffer=None, MemCtl=None):
         self._machine_state["metadata"]["cycle"] = cycle
         window["cycle_number"].update(
@@ -506,7 +506,7 @@ class Graphics():
             self.__convertLSBuffer(LS_Buffer)
             window['ls_buffer_table'].update(
                 self._machine_state["Load Store Buffer"]["contents"])
-        
+
         if MemCtl:
             self.__convertMemCtl(MemCtl)
             window['data_mem_table'].update(

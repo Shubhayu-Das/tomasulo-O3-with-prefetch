@@ -7,6 +7,8 @@ def pad(number, n):
     return number
 
 # Function to convert integers to binary - using 2's complement
+
+
 def dec2bin(number, n_bits=32):
     if(number & (1 << (n_bits - 1))) != 0:
         number = number - (1 << n_bits)
@@ -16,8 +18,11 @@ def dec2bin(number, n_bits=32):
     return formatter.format(number).replace('-', '')
 
 # Function to convert binary to integer - using 2's complement
+
+
 def bin2dec(number):
     pass
+
 
 if __name__ == "__main__":
     print(len(dec2bin(-10)), dec2bin(-10))
