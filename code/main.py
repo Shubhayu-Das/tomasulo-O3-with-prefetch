@@ -78,7 +78,7 @@ class Tomasulo:
 
                 RS = None
 
-                if instruction_type in ["ADD", "SUB"]:
+                if instruction_type in ["ADD", "SUB", "BEQ", "BNE"]:
                     RS = self._ADD_RS
                 elif instruction_type in ["MUL", "DIV"]:
                     RS = self._MUL_RS
@@ -88,7 +88,7 @@ class Tomasulo:
                 if RS:
                     if not RS.is_busy():
                         if RS.add_entry(instruction, self._ARF):
-                            if instruction_type == "SW":
+                            if instruction_type in ["SW", "BEQ", "BNE"]:
                                 break
 
                             destination = self._ARF.get_register(

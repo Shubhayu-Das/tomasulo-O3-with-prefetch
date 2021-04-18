@@ -16,7 +16,10 @@ class ReservationStationEntry:
     def __init__(self, instr, ARFTable, busy=True):
         self._instruction = instr
         self._busy = busy
-        self._dest = instr.rd
+        if instr.disassemble()["command"].startswith("B"):
+            self._dest = "-"
+        else:
+            self._dest = instr.rd
         self._rob_updated = False
         self._value = None
 
@@ -55,6 +58,8 @@ class ReservationStationEntry:
             "SUB": lambda x, y: int(x-y),
             "MUL": lambda x, y: int(x*y),
             "DIV": lambda x, y: int(x/y),
+            "BEQ": lambda x, y: 1 if x == y else 0,
+            "BNE": lambda x, y: 1 if x != y else 0,
         }
 
         try:

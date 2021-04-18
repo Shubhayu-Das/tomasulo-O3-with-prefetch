@@ -14,12 +14,15 @@ from helpers import pad
 # Function to split the instruction string into opcode and registers(and offset if needed)
 # This function is capable of handling comments too
 
+def clean_program(program):
+    program = [inst.split(";")[0].strip() for inst in program]
+    program = list(filter(None, program))
+    
+    return program
 
 def split_operands(program):
-    program = [inst.split(";")[0] for inst in program]
-    program = list(filter(None, program))
-    program = [re.split(r",|\s", inst.strip()) for inst in program]
-    program = [[word.upper().replace('X', '') for word in inst if word]
+    program = [re.split(r",|\s", inst) for inst in program]
+    program = [[re.sub(r'X(\d)', r'\1', word.upper()) for word in inst if word]
                for inst in program]
     program = [inst for inst in program if inst]
 
@@ -33,6 +36,7 @@ def assembler(filename):
     outFile = ".".join([filename.split("/")[-1].split(".")[0], "bin"])
     program = []
     assembly = []
+    branch_mappings = {}
 
     mapping = {
         "ADD": {
@@ -63,18 +67,48 @@ def assembler(filename):
             "funct3": "010",
             "opcode": "0100011"
         },
+        "BEQ": {
+            "funct3": "000",
+            "opcode": "1100011"
+        },
+        "BNE": {
+            "funct3": "001",
+            "opcode": "1100011"
+        },
     }
 
     # Read the source code
     with open(filename) as sourceCode:
         program = (sourceCode.readlines())
 
+    program = clean_program(program)
+
+    for index, line in enumerate(program):
+        if ":" in line:
+            tag, inst = line.split(":")
+            program[index] = inst
+            branch_mappings.update({tag: index})
+
     # Split each instruction into requisite pieces
     program = split_operands(program)
 
     # Decode the split chunks into binary
     for i, inst in enumerate(program):
-        if "LW" in inst:
+        if inst[0].startswith('B'):
+
+            inst[-1] = branch_mappings[inst[-1]] - i - 1
+
+            offset = pad(bin(int(inst[-1])), 12)
+            rs2 = pad(bin(int(inst[1])), 5)
+            rs1 = pad(bin(int(inst[2])), 5)
+            funct3 = mapping[inst[0]]["funct3"]
+            opcode = mapping[inst[0]]["opcode"]
+
+            assembly.append(offset[0]+offset[2:8]+rs2+ \
+                            rs1+funct3+offset[8:]+offset[1]+opcode)
+
+
+        elif "LW" in inst:
             offset, rs1 = inst[2].split('(')
 
             offset = pad(bin(int(offset)), 12)

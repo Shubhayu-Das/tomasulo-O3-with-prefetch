@@ -32,7 +32,9 @@ NumCycles = {
     "MUL": 10,
     "DIV": 40,
     "LW": 5,
-    "SW": 5
+    "SW": 5,
+    "BNE": 1,
+    "BEQ": 1
 }
 
 # This class is NOT to be modified. Represents the execution states of each instruction

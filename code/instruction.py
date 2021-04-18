@@ -47,6 +47,9 @@ instruction - funct7 - rs2 - rs1 - funct3 - rd - opcode
     MUL      0000001 - src2 - src1 - 000 - dest - 0110011
     DIV      0000001 - src2 - src1 - 100 - dest - 0110011
 
+    BEQ    os[12|10:5]-src2 - src1 - 000-os[4:1|11]-1100011 
+    BNE    os[12|10:5]-src2 - src1 - 001-os[4:1|11]-1100011 
+
 ADD/SUB/MUL/DIV rd, rs1, rs2
 
 References:
@@ -82,6 +85,9 @@ class Instruction:
             elif opcode == "0100011" and funct3 == "010":  # SW
                 self.rs2 = rs2
                 self.offset = funct7 + rd
+            elif opcode == "1100011":
+                self.rs2 = rs2
+                self.offset = (funct7[0] + rd[-1]  + funct7[1:] + rd[0:-1])
         else:
             self.rd = rd
             self.rs2 = rs2
@@ -113,6 +119,20 @@ class Instruction:
             elif self.opcode == "0100011" and self.funct3 == "010":
                 command = "SW"
 
+                return {
+                    "command": command,
+                    "rs1": self.rs1,
+                    "rs2": self.rs2,
+                    "offset": offset
+                }
+    
+            # Branch instructions
+            elif self.opcode == "1100011":
+                if self.funct3 == "000":
+                    command = "BEQ"
+                elif self.funct3 == "001":
+                    command = "BNE"
+                
                 return {
                     "command": command,
                     "rs1": self.rs1,
@@ -161,6 +181,10 @@ class Instruction:
             elif instruction["command"] == "SW":
                 rs2 = instruction["rs2"]
                 return f"{instruction['command']} {rs2}, {instruction['offset']}({rs1})"
+            elif instruction["command"].startswith("B"):
+                rs2 = instruction["rs2"]
+                return f"{instruction['command']} {rs2}, {rs1}, {instruction['offset']}"
+
         else:
             rd = instruction["rd"]
             return f"{instruction['command']} {rd}, {rs1}, {instruction['rs2']}"
@@ -214,6 +238,23 @@ class Instruction:
                     opcode=opcode,
                     hasOffset=hasOffset
                 )
+
+        # Branch instructions
+        elif opcode == "1100011" and funct3 in ["000", "001"]:
+            hasOffset = True
+            rd = instruction[20:25]
+
+            return Instruction(
+                PC=PC,
+                funct7=funct7,
+                rs2=rs2,
+                rs1=rs1,
+                rd=rd,
+                funct3=funct3,
+                opcode=opcode,
+                hasOffset=hasOffset
+            )
+
         else:
             return Instruction(
                 PC=PC,
@@ -232,5 +273,7 @@ class Instruction:
                 return f"<[PC={self.PC}] offset:{self.offset} rs1:{self.rs1} funct3:{self.funct3} rd:{self.rd} opcode:{self.opcode}>"
             elif self.opcode == "0100011" and self.funct3 == "010":
                 return f"<[PC={self.PC}] offset:{self.offset} rs1:{self.rs1} funct3:{self.funct3} rs2:{self.rs2} opcode:{self.opcode}>"
+            elif self.opcode == "1100011":
+                return f"<[PC={self.PC}] offset:{self.offset} rs2:{self.rs2} rs1:{self.rs1} funct3:{self.funct3} opcode:{self.opcode}>"
         else:
             return f"<[PC={self.PC}] funct7:{self.funct7} rs2:{self.rs2} rs1:{self.rs1} funct3:{self.funct3} rd:{self.rd} opcode:{self.opcode}>"
