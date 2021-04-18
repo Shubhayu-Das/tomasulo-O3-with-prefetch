@@ -32,7 +32,7 @@ class CacheEntry:
         return self._tag
 
     def __str__(self):
-        return f"<[{'VALID' is self._valid_bit else 'INVALID'}]CacheEntry: tag: {self._tag}, value: {self._value} [{'NOT ' if not self._dirty_bit else ''}DIRTY]>"
+        return f"<[{'VALID' if self._valid_bit else 'INVALID'}]CacheEntry: tag: {self._tag}, value: {self._value} [{'NOT ' if not self._dirty_bit else ''}DIRTY]>"
 
 
 class Cache:
