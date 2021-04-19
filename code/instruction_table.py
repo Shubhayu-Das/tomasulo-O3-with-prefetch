@@ -41,6 +41,7 @@ class InstructionTableEntry:
         if self._instruction.disassemble()["command"] not in ["LW", "SW"]:
             return False
 
+        self._counter = 0
         self._max_ticks = n_ticks
         return True
 
@@ -72,6 +73,25 @@ class InstructionTableEntry:
     def commit(self, cycle):
         self._state = RunState.COMMIT
         self._commit = cycle
+
+
+    # SW memory access needs extra action to happen after commit, hence these function
+    # Start accessing the memory
+    def mem_access(self):
+        self._state = RunState.MEM_WRITE
+
+    # Function to count up on the number of cycles the SW instruction has executed for
+    def mem_tick(self):
+        if self._counter == self._max_ticks:
+            return True
+        else:
+            self._counter += 1
+            return False
+
+    # SW is successfully complete. Stop forever
+    def mem_commit(self, cycle):
+        self._state = RunState.COMMIT
+        self._commit = f"{self._commit}/{cycle}"
 
     # Function to update the result of the instruction, once it completes instruction
     def update_result(self, new_value):

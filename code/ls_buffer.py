@@ -64,10 +64,10 @@ class LoadStoreBufferEntry:
             return False
 
         if self._is_store:
-            index = self._base_val + self._offset
+            addr = self._base_val + self._offset
             data = self._data_src_val
             self._busy = False
-            return index, data
+            return addr, data
         else:
             index = self._base_val + self._offset
 
@@ -79,7 +79,7 @@ class LoadStoreBufferEntry:
             return data
 
     def __str__(self):
-        return f"<LW/SW buffer entry: {self._instruction.dissamble()}, {self._busy}>"
+        return f"<LW/SW buffer entry: {self._instruction.disassemble()}, {self._busy}>"
 
 
 # Data structure to represent the load/store buffer
@@ -93,7 +93,7 @@ class LoadStoreBuffer:
     # Function to find the next free index to make an entry.
     # Could have simply ripped of a circular buffer, but meh
     def __update_free_index(self, update=False):
-        counter = 0
+        counter = -1
 
         if update and not self._is_full:
             return

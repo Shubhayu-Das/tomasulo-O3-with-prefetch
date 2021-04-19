@@ -40,7 +40,7 @@ class Tomasulo:
         self._memory_controller = MemoryController(data_mem, True, True)
 
         # Creating objects of the functional components
-        self._ARF = ARF(size=10, init=[12, 16, 45, 5, 3, 4, 1, 2, 2, 3])
+        self._ARF = ARF(size=10, init=[12, 16, 4, 5, 3, 4, 1, 2, 2, 3])
 
         self._ADD_RS = ReservationStation(constants.ADD_SUB, size=3)
         self._MUL_RS = ReservationStation(constants.MUL_DIV, size=2)
@@ -88,17 +88,16 @@ class Tomasulo:
                 if RS:
                     if not RS.is_busy():
                         if RS.add_entry(instruction, self._ARF):
+                            # Store word instructions have no destination register
+                            # We still need to make a ROB entry for in-order commit
                             if instruction_type in ["SW"]:
-                                it_entry.rs_issue(self._clock_cycle)
-                                
-                                self._next_event = True
-                                break
+                                self._ROB.add_entry(instruction, None)
+                            else:
+                                destination = self._ARF.get_register(
+                                    instruction.rd)
 
-                            destination = self._ARF.get_register(
-                                it_entry._instruction.rd)
-
-                            destination.set_link(self._ROB.add_entry(
-                                it_entry._instruction, destination))
+                                destination.set_link(self._ROB.add_entry(
+                                    instruction, destination))
 
                         if RS in [self._ADD_RS, self._MUL_RS, self._LSQ]:
                             RS.update_rs_entries(robEntry)
@@ -146,9 +145,8 @@ class Tomasulo:
             if it_entry.get_state() == constants.RunState.EX_END:
 
                 if it_entry.get_inst().disassemble()["command"] == "SW":
-                    if self._memory_controller.mem_write(it_entry.get_result()):
-                        it_entry.cdb_write("-")
-                        it_entry.commit(self._clock_cycle)
+                    # if self._memory_controller.mem_write(it_entry.get_result()):
+                    it_entry.cdb_write("-")
                 else:
                     it_entry.cdb_write(self._clock_cycle)
 
@@ -168,20 +166,40 @@ class Tomasulo:
 
     def tryCommit(self):
         for it_entry in self._instructionTable.get_entries():
-            if it_entry.get_state() == constants.RunState.COMMIT:
+            if it_entry.get_state() == constants.RunState.MEM_WRITE:
+                if it_entry.mem_tick():
+                    it_entry.mem_commit(self._clock_cycle)
+
+                    addr, data = it_entry.get_result()
+                    self._memory_controller.mem_write(addr, data)
+                    self._memory_controller.clear_busy_bit(addr)
+
+            elif it_entry.get_state() == constants.RunState.COMMIT:
                 continue
+
             elif it_entry.get_state() == constants.RunState.CDB:
                 robEntry = self._ROB.remove_entry()
                 if robEntry:
                     it_entry.commit(self._clock_cycle)
-                    self._ARF.update_register(robEntry)
+
+                    if it_entry.get_inst().disassemble()["command"] not in ["SW"]:
+                        self._ARF.update_register(robEntry)
+                    else:
+                        it_entry.mem_access()
+
+                        addr, data = it_entry.get_result()
+                        it_entry.update_result([addr, data])
+                        
+                        latency = self._memory_controller.get_latency(addr)
+                        self._memory_controller.set_busy_bit(addr)
+
+                        it_entry.set_max_tick(latency-1)
 
                 self._next_event = True
                 self._n_complete += 1
             break
 
     # Function to call all the above function, while updating the program counter
-
     def logic_loop(self):
         if self._n_complete == len(self._instructions):
             return

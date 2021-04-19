@@ -36,7 +36,7 @@ class ROBEntry:
         return self._name
 
     # Function to get the destination Register
-    def get_destination(self):0
+    def get_destination(self):
         return self._dest
 
     # Function to get the instruction associated with the ROB entry

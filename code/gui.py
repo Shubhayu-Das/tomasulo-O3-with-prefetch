@@ -23,30 +23,24 @@ class Graphics():
         else:
             self._machine_state = {
                 "Instruction Table": {
-                    "contents": [[""]*6]*5,
-                    "colors": []
+                    "contents": [[""]*6]*5
                 },
                 "Reservation Station": {
-                    "contents": [["ADD/SUB", "", "", "", "", "", "", ""]]*3 + [["MUL/DIV", "", "", "", "", "", "", ""]]*2,
-                    "colors": []
+                    "contents": [["ADD/SUB", "", "", "", "", "", "", ""]]*3 + [["MUL/DIV", "", "", "", "", "", "", ""]]*2
                 },
                 "ROB": {
-                    "contents": [[""]*4]*2,
-                    "colors": []
+                    "contents": [[""]*4]*2
                 },
                 "Load Store Buffer": {
-                    "contents": [[""]*5]*2,
-                    "colors": []
+                    "contents": [[""]*5]*2
                 },
                 "ARF": {
-                    "contents": [f" R{i} " for i in range(0, LIMIT)],
-                    "colors": []
+                    "contents": [f" R{i} " for i in range(0, LIMIT)]
                 },
                 "metadata": {
                     "cycle": 0,
                     "data-mem": {
-                        "contents": [[hex(addr), bin(0), hex(0), 0] for addr in range(64)],
-                        "colors": []
+                        "contents": [[hex(addr), bin(0), hex(0), 0] for addr in range(64)]
                     }
                 }
             }
@@ -54,7 +48,6 @@ class Graphics():
     # Function to generate a table, given the data and other hyperparameters
     def __generateTable(self, title, data, headings, n_rows=5, key="table"):
         row_contents = data["contents"]
-        row_colors = list(enumerate(data["colors"]))
         hide_vertical_scroll = True
 
         if len(row_contents) > n_rows:
@@ -68,7 +61,6 @@ class Graphics():
             row_height=2*(self._font_size+1),
             justification="center",
             num_rows=n_rows,
-            row_colors=row_colors,
             alternating_row_color="lightgrey",
             text_color="black",
             key=key
@@ -120,7 +112,6 @@ class Graphics():
         ARF = self._machine_state["ARF"]
         nCycles = {
             "contents": [[inst, cycles] for inst, cycles in NumCycles.items()],
-            "colors": []
         }
 
         # Declare all the headings for each of the tables
@@ -162,7 +153,7 @@ class Graphics():
             "Load Store Buffer",
             buffer,
             bufferHeading,
-            n_rows=2,
+            n_rows=3,
             key="ls_buffer_table"
         )
         reservationStationTable = self.__generateTable(
@@ -349,7 +340,6 @@ class Graphics():
     # Function to convert the InstructionTable data into the _machine_state
     def __convertInstructionTable(self, instructionTable):
         insts = []
-        colors = []
         for entry in instructionTable._entries:
             data = []
 
@@ -361,15 +351,12 @@ class Graphics():
             data.append(str(entry._commit))
 
             insts.append(data)
-            colors.append("")
 
         self._machine_state["Instruction Table"]["contents"] = insts
-        self._machine_state["Instruction Table"]["colors"] = colors
 
     # Function to convert the ARF data into the _machine_state
     def __convertARF(self, ARFTable):
         insts = []
-        colors = []
 
         for register in list(ARFTable.get_entries().values())[:LIMIT]:
             data = []
@@ -380,15 +367,12 @@ class Graphics():
             data.append(str(register.is_busy())[0])
 
             insts.append(data)
-            colors.append("")
 
         self._machine_state["ARF"]["contents"] = insts
-        self._machine_state["ARF"]["colors"] = colors
 
     # Function to convert the ROBTable data into the _machine_state
     def __convertROB(self, rob):
         insts = []
-        colors = []
         for name, entry in rob.get_entries().items():
             data = []
             if entry is None:
@@ -403,15 +387,12 @@ class Graphics():
                 data.append(entry.get_value())
 
             insts.append(data)
-            colors.append("")
 
         self._machine_state["ROB"]["contents"] = insts
-        self._machine_state["ROB"]["colors"] = colors
 
     # Function to convert the RS data into the _machine_state
     def __convertReservationStation(self, resStats):
         insts = []
-        colors = []
         for name, resStat in resStats.items():
             for entry in resStat._buffer:
                 data = []
@@ -432,15 +413,12 @@ class Graphics():
                     data[2] = "F"
 
                 insts.append(data)
-                colors.append("")
 
         self._machine_state["Reservation Station"]["contents"] = insts
-        self._machine_state["Reservation Station"]["colors"] = colors
 
     # Function to convert the LSQ data into the _machine_state
     def __convertLSBuffer(self, LW_SW):
         insts = []
-        colors = []
         for entry in LW_SW.get_entries():
             data = []
             if entry:
@@ -462,16 +440,13 @@ class Graphics():
                 data = [""] * 5
 
             insts.append(data)
-            colors.append("")
 
         self._machine_state["Load Store Buffer"]["contents"] = insts
-        self._machine_state["Load Store Buffer"]["colors"] = colors
 
     # Function to update the state of the memory, using the memory controller
     # TODO: add display stuff for caches
     def __convertMemCtl(self, controller):
         mem = []
-        colors = []
 
         for addr, mem_row in enumerate(controller.get_memory()):
             data = []
@@ -481,10 +456,7 @@ class Graphics():
             data.append(int(mem_row, 2))
 
             mem.append(data)
-            colors.append("")
-
         self._machine_state["metadata"]["data-mem"]["contents"] = mem
-        self._machine_state["metadata"]["data-mem"]["colors"] = colors
 
     # Function to call the individual update blocks. This function is called from the main event loop
 
@@ -526,30 +498,24 @@ class Graphics():
     def resetState(self):
         self._machine_state = {
             "Instruction Table": {
-                "contents": [[""]*6]*5,
-                "colors": []
+                "contents": [[""]*6]*5
             },
             "Reservation Station": {
-                "contents": [["ADD/SUB", "", "", "", "", "", "", ""]]*3 + [["MUL/DIV", "", "", "", "", "", "", ""]]*2,
-                "colors": []
+                "contents": [["ADD/SUB", "", "", "", "", "", "", ""]]*3 + [["MUL/DIV", "", "", "", "", "", "", ""]]*2
             },
             "ROB": {
-                "contents": [[""]*4]*2,
-                "colors": []
+                "contents": [[""]*4]*2
             },
             "Load Store Buffer": {
-                "contents": [[""]*5]*2,
-                "colors": []
+                "contents": [[""]*5]*2
             },
             "ARF": {
-                "contents": [f" R{i} " for i in range(0, LIMIT)],
-                "colors": []
+                "contents": [f" R{i} " for i in range(0, LIMIT)]
             },
             "metadata": {
                 "cycle": 0,
                 "data-mem": {
-                    "contents": [[hex(addr), bin(0), hex(0), 0] for addr in range(64)],
-                    "colors": []
+                    "contents": [[hex(addr), bin(0), hex(0), 0] for addr in range(64)]
                 }
             }
         }
