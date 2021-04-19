@@ -47,8 +47,8 @@ instruction - funct7 - rs2 - rs1 - funct3 - rd - opcode
     MUL      0000001 - src2 - src1 - 000 - dest - 0110011
     DIV      0000001 - src2 - src1 - 100 - dest - 0110011
 
-    BEQ    os[12|10:5]-src2 - src1 - 000-os[4:1|11]-1100011 
-    BNE    os[12|10:5]-src2 - src1 - 001-os[4:1|11]-1100011 
+    BEQ    os[12|10:5]-src2 - src1 - 000-os[4:1|11]-1100011
+    BNE    os[12|10:5]-src2 - src1 - 001-os[4:1|11]-1100011
 
 ADD/SUB/MUL/DIV rd, rs1, rs2
 
@@ -87,7 +87,7 @@ class Instruction:
                 self.offset = funct7 + rd
             elif opcode == "1100011":   # Branches
                 self.rs2 = rs2
-                self.offset = (funct7[0] + rd[-1]  + funct7[1:] + rd[0:-1])
+                self.offset = (funct7[0] + rd[-1] + funct7[1:] + rd[0:-1])
         else:
             self.rd = rd
             self.rs2 = rs2
@@ -125,14 +125,14 @@ class Instruction:
                     "rs2": self.rs2,
                     "offset": offset
                 }
-    
+
             # Branch instructions
             elif self.opcode == "1100011":
                 if self.funct3 == "000":
                     command = "BEQ"
                 elif self.funct3 == "001":
                     command = "BNE"
-                
+
                 return {
                     "command": command,
                     "rs1": self.rs1,

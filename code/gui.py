@@ -11,6 +11,8 @@ except main.py, which calls appropriate functions in the main event loop
 
 import PySimpleGUI as sg
 from constants import LIMIT, NumCycles, VERSION, GUI_FONTSIZE
+from constants import L1D_CACHE_LATENCY, L2D_CACHE_LATENCY, MEMORY_LATENCY
+from constants import L1D_CACHE_SIZE, L2D_CACHE_SIZE, L1D_WAYS, L2D_WAYS
 
 
 # Class to encapsulate the entire behaviour of the GUI interface
@@ -41,6 +43,14 @@ class Graphics():
                     "cycle": 0,
                     "data-mem": {
                         "contents": [[hex(addr), bin(0), hex(0), 0] for addr in range(64)]
+                    }
+                },
+                "caches": {
+                    "L1": {
+                        "contents": [["" for ways in range(5*L1D_WAYS)] for _ in range(int(L1D_CACHE_SIZE/L1D_WAYS))]
+                    },
+                    "L2": {
+                        "contents": [["" for ways in range(5*L2D_WAYS)] for _ in range(int(L2D_CACHE_SIZE/L2D_WAYS))]
                     }
                 }
             }
@@ -113,6 +123,8 @@ class Graphics():
         nCycles = {
             "contents": [[inst, cycles] for inst, cycles in NumCycles.items()],
         }
+        L1_cache = self._machine_state["caches"]["L1"]
+        L2_cache = self._machine_state["caches"]["L2"]
 
         # Declare all the headings for each of the tables
         bufferHeading = [" Instruction ", "Busy",
@@ -129,6 +141,15 @@ class Graphics():
             "          Data(bin)          ",
             "Data(hex)", "Data(decimal)"
         ]
+        cacheHeading = lambda x: [f"  Tag  {x}", f"Value {x}", f"Dirty {x}", f"Valid {x}", f"Busy {x}"]
+        l1CacheHeading = []
+        l2CacheHeading = []
+
+        for i in range(L1D_WAYS):
+            l1CacheHeading += cacheHeading(i+1)
+
+        for i in range(L2D_WAYS):
+            l2CacheHeading += cacheHeading(i+1)
 
         # Generate the menu
         menu = [
@@ -181,6 +202,20 @@ class Graphics():
             n_rows=len(NumCycles),
             key="num_cycles"
         )
+        L1_cache_table = self.__generateTable("L1 cache",
+                                              L1_cache,
+                                              l1CacheHeading,
+                                              n_rows=min(LIMIT, int(
+                                                  L1D_CACHE_SIZE/L1D_WAYS) + 1),
+                                              key="l1_cache_table"
+                                              )
+        L2_cache_table = self.__generateTable("L2 cache",
+                                              L2_cache,
+                                              l2CacheHeading,
+                                              n_rows=min(LIMIT, int(
+                                                  L2D_CACHE_SIZE/L2D_WAYS) + 1),
+                                              key="l2_cache_table"
+                                              )
 
         # Define all the control buttons
         pauseButton = [sg.Button(
@@ -268,7 +303,7 @@ class Graphics():
             title="Cache",
             layout=[[sg.Column(
                 layout=[
-                    [sg.Text("Add the cache related things here")]
+                    L1_cache_table, L2_cache_table
                 ],
                 element_justification="center",
                 scrollable=allowScroll,
@@ -429,7 +464,7 @@ class Graphics():
                     data.append(entry._dest)
                 else:
                     data.append(entry._dest.get_name())
-    
+
                 if entry._base_val == "-":
                     data.append(f"{4*entry._offset}+{entry._base.get_name()}")
                 else:
@@ -447,6 +482,8 @@ class Graphics():
     # TODO: add display stuff for caches
     def __convertMemCtl(self, controller):
         mem = []
+        l1_cache = []
+        l2_cache = []
 
         for addr, mem_row in enumerate(controller.get_memory()):
             data = []
@@ -456,7 +493,40 @@ class Graphics():
             data.append(int(mem_row, 2))
 
             mem.append(data)
+
+        for row in controller.get_l1_cache():
+            data = []
+            for tag, entry in list(row.items())[:L1D_WAYS]:
+                data.append(tag)
+                if entry:
+                    data.append(entry.get_cache_value())
+                    data.append(entry.get_dirty_bit())
+                    data.append(entry.get_valid_bit())
+                    data.append(entry.get_busy_bit())
+                else:
+                    data = data + [""]*4
+
+            l1_cache.append(data)
+
+        for row in controller.get_l2_cache():
+            data = []
+            for tag, entry in list(row.items())[:L2D_WAYS]:
+                data.append(tag)
+                if entry:
+                    data.append(entry.get_cache_value())
+                    data.append(entry.get_dirty_bit())
+                    data.append(entry.get_valid_bit())
+                    data.append(entry.get_busy_bit())
+                else:
+                    data = data + [""]*4
+            
+            print(data)
+            l2_cache.append(data)
+        print()
+
         self._machine_state["metadata"]["data-mem"]["contents"] = mem
+        self._machine_state["caches"]["L1"]["contents"] = l1_cache
+        self._machine_state["caches"]["L2"]["contents"] = l2_cache
 
     # Function to call the individual update blocks. This function is called from the main event loop
 
@@ -492,6 +562,12 @@ class Graphics():
             self.__convertMemCtl(MemCtl)
             window['data_mem_table'].update(
                 self._machine_state["metadata"]["data-mem"]["contents"])
+            
+            window['l1_cache_table'].update(
+                self._machine_state["caches"]["L1"]["contents"])
+
+            window['l2_cache_table'].update(
+                self._machine_state["caches"]["L2"]["contents"])
 
     # Function to reset the machine state in GUI
     # Used after loading in a new program
@@ -516,6 +592,14 @@ class Graphics():
                 "cycle": 0,
                 "data-mem": {
                     "contents": [[hex(addr), bin(0), hex(0), 0] for addr in range(64)]
+                }
+            },
+            "caches": {
+                "L1": {
+                    "contents": [["" for ways in range(5*L1D_WAYS)] for _ in range(int(L1D_CACHE_SIZE/L1D_WAYS))]
+                },
+                "L2": {
+                    "contents": [["" for ways in range(5*L2D_WAYS)] for _ in range(int(L2D_CACHE_SIZE/L2D_WAYS))]
                 }
             }
         }

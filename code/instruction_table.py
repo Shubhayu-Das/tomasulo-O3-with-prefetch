@@ -74,9 +74,9 @@ class InstructionTableEntry:
         self._state = RunState.COMMIT
         self._commit = cycle
 
-
     # SW memory access needs extra action to happen after commit, hence these function
     # Start accessing the memory
+
     def mem_access(self):
         self._state = RunState.MEM_WRITE
 

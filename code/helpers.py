@@ -23,6 +23,7 @@ def dec2bin(number, n_bits=32):
 def bin2dec(number):
     pass
 
+
 if __name__ == "__main__":
     print(len(dec2bin(-10)), dec2bin(-10))
     print(len(dec2bin(10)), dec2bin(10))

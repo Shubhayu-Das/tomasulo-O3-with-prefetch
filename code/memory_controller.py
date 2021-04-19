@@ -53,7 +53,6 @@ class MemoryController:
         return True
 
     def mem_busy_bit_update(self, addr, busy_bit):
-        print(addr, len(self._mem_busy_bit))
         self._mem_busy_bit[addr] = busy_bit
 
     def mem_write(self, addr, data):
@@ -62,9 +61,9 @@ class MemoryController:
 
         # TODO: add caches in here
         if self._L1D.set_entry(addr, data):
-            return data #have to design still
+            return data  # have to design still
         elif self._L2D.set_entry(addr, data):
-            return data #have to still design
+            return data  # have to still design
         else:
             self._memory[addr] = data
             self.save_memory()
@@ -78,16 +77,16 @@ class MemoryController:
     def clear_busy_bit(self, addr):
         self._L1D.clear_busy_bit(addr)
         self._L2D.clear_busy_bit(addr)
-        self.mem_busy_bit_update(addr,False)
-    
-    def get_latency(self,addr):
+        self.mem_busy_bit_update(addr, False)
+
+    def get_latency(self, addr):
         if(self._L1D.is_entry_there(addr)):
             return L1D_CACHE_LATENCY
         elif(self._L2D.is_entry_there(addr)):
             return L1D_CACHE_LATENCY+L2D_CACHE_LATENCY
         else:
             return L1D_CACHE_LATENCY+L2D_CACHE_LATENCY+MEMORY_LATENCY
-    
+
     def get_memory_entry(self, addr):
         if addr > self._size:
             return False
@@ -99,11 +98,11 @@ class MemoryController:
         if not value:
             value = self._L2D.get_memory_entry(addr)
             if not value:
-                return [self._memory[addr],L1D_CACHE_LATENCY+L2D_CACHE_LATENCY+MEMORY_LATENCY] 
+                return [self._memory[addr], L1D_CACHE_LATENCY+L2D_CACHE_LATENCY+MEMORY_LATENCY]
             else:
-                return [value[1],L1D_CACHE_LATENCY+L2D_CACHE_LATENCY]
+                return [value[1], L1D_CACHE_LATENCY+L2D_CACHE_LATENCY]
         else:
-            return [value[1],L1D_CACHE_LATENCY]
+            return [value[1], L1D_CACHE_LATENCY]
         # As a proof of working, I have randomly set 10 for now
         # The second value will change depending on cache config
         return [self._memory[addr], 10]

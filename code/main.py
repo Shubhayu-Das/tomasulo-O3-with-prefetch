@@ -109,7 +109,6 @@ class Tomasulo:
 
     # Function to simulate the execution of the process. This includes dispatching
     # self._instructions and handling their execution steps
-
     def tryExecute(self):
         for RS in [self._LSQ, self._ADD_RS, self._MUL_RS]:
             for rs_entry in RS.get_entries():
@@ -139,7 +138,6 @@ class Tomasulo:
                 it_entry.ex_tick(self._clock_cycle)
 
     # Function to perform the CDB broadcast, when an instruction has completed executing
-
     def tryCDBBroadcast(self):
         for it_entry in self._instructionTable.get_entries():
             if it_entry.get_state() == constants.RunState.EX_END:
@@ -163,7 +161,6 @@ class Tomasulo:
 
     # Function to commit the result of an instruction, if it has completed CDB broadcast
     # and is at the tail of the self._ROB
-
     def tryCommit(self):
         for it_entry in self._instructionTable.get_entries():
             if it_entry.get_state() == constants.RunState.MEM_WRITE:
@@ -189,7 +186,7 @@ class Tomasulo:
 
                         addr, data = it_entry.get_result()
                         it_entry.update_result([addr, data])
-                        
+
                         latency = self._memory_controller.get_latency(addr)
                         self._memory_controller.set_busy_bit(addr)
 

@@ -14,11 +14,13 @@ from helpers import pad
 # Function to split the instruction string into opcode and registers(and offset if needed)
 # This function is capable of handling comments too
 
+
 def clean_program(program):
     program = [inst.split(";")[0].strip() for inst in program]
     program = list(filter(None, program))
-    
+
     return program
+
 
 def split_operands(program):
     program = [re.split(r",|\s", inst) for inst in program]
@@ -104,9 +106,8 @@ def assembler(filename):
             funct3 = mapping[inst[0]]["funct3"]
             opcode = mapping[inst[0]]["opcode"]
 
-            assembly.append(offset[0]+offset[2:8]+rs2+ \
+            assembly.append(offset[0]+offset[2:8]+rs2 +
                             rs1+funct3+offset[8:]+offset[1]+opcode)
-
 
         elif "LW" in inst:
             offset, rs1 = inst[2].split('(')
