@@ -17,13 +17,23 @@ GUI_FONTSIZE = 16
 
 # CYCLE_DURATION sets the time period of each clock cycle.
 # Increase this value(in milliseconds) to make each cycle last longer in the simulation
-CYCLE_DURATION = 1000    # in ms
+CYCLE_DURATION = 100    # in ms
 
 # Bit width of the data used by the processor
 WORD_SIZE = 32
 
+# Size of the various caches
 L1D_CACHE_SIZE = 2
-L2D_CACHE_SIZE = 4
+L2D_CACHE_SIZE = 8
+
+# Number of ways in the cache
+L1D_WAYS = 2
+L2D_WAYS = 2
+
+# Latencies for accessing various levels of the cache
+L1D_CACHE_LATENCY = 1
+L2D_CACHE_LATENCY = 5
+MEMORY_LATENCY = 10
 
 # The number of cycles taken by each supported instruction to execute
 NumCycles = {
@@ -31,10 +41,10 @@ NumCycles = {
     "SUB": 1,
     "MUL": 10,
     "DIV": 40,
-    "LW": 5,
+    "LW": 3,
     "SW": 5,
     "BNE": 1,
-    "BEQ": 1
+    "BEQ": 1,
 }
 
 # This class is NOT to be modified. Represents the execution states of each instruction
@@ -47,6 +57,7 @@ class RunState:
     EX_END = "EX_END"
     CDB = "CDB"
     COMMIT = "COMMIT"
+    MEM_WRITE = "MEM_WRITE"
 
 
 # Stores the number of ARF registers to generate and display(RISC-V has 32)
