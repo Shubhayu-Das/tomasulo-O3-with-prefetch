@@ -144,7 +144,7 @@ class ReservationStation:
         return True
 
     # Function to update the values of the RS entries on a CDB broadcast
-    def updateEntries(self, arf, robEntry):
+    def update_rs_entries(self, robEntry):
         for entry in self._buffer:
             if entry and robEntry:
                 if entry._src_tag1 == robEntry.get_name():

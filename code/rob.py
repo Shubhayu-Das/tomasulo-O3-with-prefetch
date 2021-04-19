@@ -36,7 +36,7 @@ class ROBEntry:
         return self._name
 
     # Function to get the destination Register
-    def get_destination(self):
+    def get_destination(self):0
         return self._dest
 
     # Function to get the instruction associated with the ROB entry
@@ -59,7 +59,7 @@ class ROBTable:
             self._bank.update({f"ROB{i}": None})
 
     # Function to add an entry to the head of the ROB, if possible
-    def add_entry(self, inst, dest):
+    def add_entry(self, inst, dest=None):
         if self._bank[f"ROB{self._head}"]:
             if DEBUG:
                 print("ROB FULL")

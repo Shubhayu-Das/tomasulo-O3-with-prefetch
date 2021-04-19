@@ -85,7 +85,7 @@ class Instruction:
             elif opcode == "0100011" and funct3 == "010":  # SW
                 self.rs2 = rs2
                 self.offset = funct7 + rd
-            elif opcode == "1100011":
+            elif opcode == "1100011":   # Branches
                 self.rs2 = rs2
                 self.offset = (funct7[0] + rd[-1]  + funct7[1:] + rd[0:-1])
         else:

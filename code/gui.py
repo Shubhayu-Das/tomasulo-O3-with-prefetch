@@ -396,7 +396,10 @@ class Graphics():
             else:
                 data.append(name)
                 data.append(entry.get_inst().str_disassemble())
-                data.append(entry.get_destination().get_name())
+                if entry.get_destination():
+                    data.append(entry.get_destination().get_name())
+                else:
+                    data.append("NA")
                 data.append(entry.get_value())
 
             insts.append(data)
@@ -444,9 +447,15 @@ class Graphics():
                 data.append(entry.get_inst().str_disassemble())
 
                 data.append(str(entry.is_busy())[0])
-                data.append(entry._dest)
-
-                data.append(f"{4*entry._offset}+{entry._base.get_name()}")
+                if isinstance(entry._dest, str):
+                    data.append(entry._dest)
+                else:
+                    data.append(entry._dest.get_name())
+    
+                if entry._base_val == "-":
+                    data.append(f"{4*entry._offset}+{entry._base.get_name()}")
+                else:
+                    data.append(f"{4*entry._offset}+{entry._base_val}")
                 data.append(entry._base.get_name())
 
             else:

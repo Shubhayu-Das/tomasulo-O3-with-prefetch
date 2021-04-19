@@ -90,6 +90,7 @@ class Tomasulo:
                         if RS.add_entry(instruction, self._ARF):
                             if instruction_type in ["SW"]:
                                 it_entry.rs_issue(self._clock_cycle)
+                                
                                 self._next_event = True
                                 break
 
@@ -99,8 +100,8 @@ class Tomasulo:
                             destination.set_link(self._ROB.add_entry(
                                 it_entry._instruction, destination))
 
-                        if RS in [self._ADD_RS, self._MUL_RS]:
-                            RS.updateEntries(self._ARF, robEntry)
+                        if RS in [self._ADD_RS, self._MUL_RS, self._LSQ]:
+                            RS.update_rs_entries(robEntry)
 
                         it_entry.rs_issue(self._clock_cycle)
                         self._next_event = True
@@ -156,8 +157,8 @@ class Tomasulo:
                         it_entry.get_inst(), value)
 
                     if robEntry:
-                        for RS in [self._ADD_RS, self._MUL_RS]:
-                            RS.updateEntries(self._ARF, robEntry)
+                        for RS in [self._ADD_RS, self._MUL_RS, self._LSQ]:
+                            RS.update_rs_entries(robEntry)
 
                     self._next_event = True
                     return robEntry

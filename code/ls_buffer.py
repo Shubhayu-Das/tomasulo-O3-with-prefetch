@@ -22,16 +22,29 @@ class LoadStoreBufferEntry:
         self._base = ARFTable.get_register(instr.rs1)
         self._is_store = instr.disassemble()["command"] == "SW"
 
+        self._base_val = self.__get_reg_val(self._base)
+        self._data_src = None
+
         if self._is_store:
-            self._data_reg = ARFTable.get_register(instr.rs2)
+            self._data_src = ARFTable.get_register(instr.rs2)
+            self._data_src_val = self.__get_reg_val(self._data_src)
             self._dest = "memory"
         else:
-            self._dest = instr.rd
+            self._dest = ARFTable.get_register(instr.rd)
+
+    def __get_reg_val(self, reg):
+        if reg.is_busy():
+            return "-"
+        else:
+            return reg.get_value()
 
     # Function to tell whether the instruction is ready for executing
     # This function checks if the source register is ready
     def is_executeable(self):
-        return not self._base.is_busy()
+        if self._dest == "memory":
+            return (self._data_src_val != "-") and (self._base_val != "-")
+        else:
+            return (self._base_val != "-")
 
     # Function to tell is the particular slot is busy or not. Pretty much vestigial
     # in my implementation
@@ -47,19 +60,16 @@ class LoadStoreBufferEntry:
     # to improve readability
     # Added support for SW as well
     def get_result(self, memCtl=None):
-        if self._base.is_busy():
+        if not self.is_executeable():
             return False
 
         if self._is_store:
-            if self._data_reg.is_busy():
-                return False
-
-            index = self._base.get_value() + self._offset
-            data = self._data_reg.get_value()
+            index = self._base_val + self._offset
+            data = self._data_src_val
             self._busy = False
             return index, data
         else:
-            index = self._base.get_value() + self._offset
+            index = self._base_val + self._offset
 
             # Handing over all memory accesses to the memory controller
             data = memCtl.get_memory_entry(index)
@@ -141,6 +151,18 @@ class LoadStoreBuffer:
             return True
         else:
             return False
+
+    def update_rs_entries(self, robEntry):
+        for entry in self._buffer:
+            if entry and robEntry:
+                regName = robEntry.get_destination()
+
+                if entry._base == regName:
+                    entry._base_val = robEntry.get_value()
+
+                if entry._data_src:
+                    if entry._data_src == regName:
+                        entry._data_src_val = robEntry.get_value()
 
     # Function to tell if the buffer is full and can't accept more dispatches
     def is_busy(self):
