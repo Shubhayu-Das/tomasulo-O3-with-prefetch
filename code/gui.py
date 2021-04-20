@@ -497,13 +497,17 @@ class Graphics():
 
         for row in controller.get_l1_cache():
             data = []
-            for tag, entry in list(row.items())[:L1D_WAYS]:
-                data.append(tag)
+            for tag, entry in row.items():
                 if entry:
-                    data.append(entry.get_cache_value())
-                    data.append(entry.get_dirty_bit())
-                    data.append(entry.get_valid_bit())
-                    data.append(entry.get_busy_bit())
+                    data.append(entry.get_tag())
+                    temp = entry.get_cache_value()
+                    if isinstance(temp, list):
+                        data.append(temp[-1])
+                    else:
+                        data.append(temp)
+                    data.append(str(entry.get_dirty_bit())[0])
+                    data.append(str(entry.get_valid_bit())[0])
+                    data.append(str(entry.get_busy_bit())[0])
                 else:
                     data = data + [""]*4
 
@@ -511,13 +515,17 @@ class Graphics():
 
         for row in controller.get_l2_cache():
             data = []
-            for tag, entry in list(row.items())[:L2D_WAYS]:
-                data.append(tag)
+            for tag, entry in row.items():
                 if entry:
-                    data.append(entry.get_cache_value())
-                    data.append(entry.get_dirty_bit())
-                    data.append(entry.get_valid_bit())
-                    data.append(entry.get_busy_bit())
+                    data.append(entry.get_tag())
+                    temp = entry.get_cache_value()
+                    if isinstance(temp, list):
+                        data.append(temp[-1])
+                    else:
+                        data.append(temp)
+                    data.append(str(entry.get_dirty_bit())[0])
+                    data.append(str(entry.get_valid_bit())[0])
+                    data.append(str(entry.get_busy_bit())[0])
                 else:
                     data = data + [""]*4
 

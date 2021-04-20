@@ -169,7 +169,7 @@ class Tomasulo:
 
                     addr, data = it_entry.get_result()
                     self._memory_controller.mem_write(addr, data)
-                    self._memory_controller.clear_busy_bit(addr)
+                    self._memory_controller.update_busy_bit(addr, value=False)
 
                     if constants.DEBUG:
                         print(f"Mem write @ addr: {addr} with data: {data}")
@@ -198,7 +198,8 @@ class Tomasulo:
                         it_entry.update_result([addr, data])
 
                         latency = self._memory_controller.get_latency(addr)
-                        self._memory_controller.set_busy_bit(addr)
+                        self._memory_controller.update_busy_bit(
+                            addr, value=True)
 
                         it_entry.set_max_tick(latency-1)
 
