@@ -123,3 +123,9 @@ class ROBTable:
     # Function to return all the ROB entries, for displaying purposes only
     def get_entries(self):
         return self._bank
+
+    def get_tail_inst(self):
+        if self._bank[f"ROB{self._tail}"]:
+            return self._bank[f"ROB{self._tail}"].get_inst()
+        else:
+            return None

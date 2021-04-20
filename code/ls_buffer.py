@@ -64,7 +64,7 @@ class LoadStoreBufferEntry:
             return False
 
         if self._is_store:
-            addr = self._base_val + self._offset
+            addr = self._base_val + self._offset - 1
             data = self._data_src_val
             self._busy = False
             return addr, data
@@ -155,13 +155,14 @@ class LoadStoreBuffer:
     def update_rs_entries(self, robEntry):
         for entry in self._buffer:
             if entry and robEntry:
-                regName = robEntry.get_destination()
+                baseReg = entry._base
+                dataReg = entry._data_src
 
-                if entry._base == regName:
+                if baseReg.get_link() == robEntry.get_name() and entry._base_val == "-":
                     entry._base_val = robEntry.get_value()
 
                 if entry._data_src:
-                    if entry._data_src == regName:
+                    if dataReg.get_link() == robEntry.get_name() and entry._data_src_val == "-":
                         entry._data_src_val = robEntry.get_value()
 
     # Function to tell if the buffer is full and can't accept more dispatches

@@ -40,7 +40,7 @@ class Tomasulo:
         self._memory_controller = MemoryController(data_mem, True, True)
 
         # Creating objects of the functional components
-        self._ARF = ARF(size=10, init=[12, 16, 4, 5, 3, 4, 1, 2, 2, 3])
+        self._ARF = ARF(size=10, init=[4, 1, 4, 5, 3, 4, 1, 2, 2, 3])
 
         self._ADD_RS = ReservationStation(constants.ADD_SUB, size=3)
         self._MUL_RS = ReservationStation(constants.MUL_DIV, size=2)
@@ -59,7 +59,7 @@ class Tomasulo:
                     Instruction.segment(inst, PC=local_PC+1))
 
         self._instructionTable = InstructionTable(
-            size=min(10, len(self._instructions)))
+            size=len(self._instructions))
 
         for instruction in self._instructions:
             self._instructionTable.add_entry(instruction)
@@ -99,13 +99,13 @@ class Tomasulo:
                                 destination.set_link(self._ROB.add_entry(
                                     instruction, destination))
 
+                            it_entry.rs_issue(self._clock_cycle)
+                            self._next_event = True
+
+                            break
+
                         if RS in [self._ADD_RS, self._MUL_RS, self._LSQ]:
                             RS.update_rs_entries(robEntry)
-
-                        it_entry.rs_issue(self._clock_cycle)
-                        self._next_event = True
-
-                        break
 
     # Function to simulate the execution of the process. This includes dispatching
     # self._instructions and handling their execution steps
@@ -143,8 +143,8 @@ class Tomasulo:
             if it_entry.get_state() == constants.RunState.EX_END:
 
                 if it_entry.get_inst().disassemble()["command"] == "SW":
-                    # if self._memory_controller.mem_write(it_entry.get_result()):
                     it_entry.cdb_write("-")
+                    self._next_event = True
                 else:
                     it_entry.cdb_write(self._clock_cycle)
 
@@ -171,16 +171,26 @@ class Tomasulo:
                     self._memory_controller.mem_write(addr, data)
                     self._memory_controller.clear_busy_bit(addr)
 
-            elif it_entry.get_state() == constants.RunState.COMMIT:
+                    if constants.DEBUG:
+                        print(f"Mem write @ addr: {addr} with data: {data}")
+
+                    self._n_complete += 1
+                    self._next_event = True
+
+            if it_entry.get_state() == constants.RunState.COMMIT:
                 continue
 
             elif it_entry.get_state() == constants.RunState.CDB:
+                if it_entry.get_inst().PC != self._ROB.get_tail_inst().PC:
+                    continue
+
                 robEntry = self._ROB.remove_entry()
                 if robEntry:
                     it_entry.commit(self._clock_cycle)
 
                     if it_entry.get_inst().disassemble()["command"] not in ["SW"]:
                         self._ARF.update_register(robEntry)
+                        self._n_complete += 1
                     else:
                         it_entry.mem_access()
 
@@ -192,9 +202,8 @@ class Tomasulo:
 
                         it_entry.set_max_tick(latency-1)
 
-                self._next_event = True
-                self._n_complete += 1
-            break
+                    self._next_event = True
+                break
 
     # Function to call all the above function, while updating the program counter
     def logic_loop(self):
@@ -202,6 +211,8 @@ class Tomasulo:
             return
 
         self._clock_cycle += 1
+
+        self.reset_next_event()
 
         if constants.DEBUG:
             print(self._clock_cycle)
@@ -217,18 +228,18 @@ class Tomasulo:
         self.tryDispatch(robEntry)
 
         # Update the changes into the history buffer
-        self._historyBuffer.append([
-            copy.deepcopy(self._instructionTable),
-            copy.deepcopy(self._ROB),
-            {
+        self._historyBuffer.append({
+            "instruction_table": copy.deepcopy(self._instructionTable),
+            "ROB": copy.deepcopy(self._ROB),
+            "RS": {
                 constants.ADD_SUB: copy.deepcopy(self._ADD_RS),
                 constants.MUL_DIV: copy.deepcopy(self._MUL_RS)
             },
-            copy.deepcopy(self._ARF),
-            copy.deepcopy(self._LSQ),
-            copy.deepcopy(self._memory_controller),
-            copy.deepcopy(self._next_event)
-        ])
+            "ARF": copy.deepcopy(self._ARF),
+            "LSQ": copy.deepcopy(self._LSQ),
+            "next_event": copy.deepcopy(self._next_event),
+            "memory_controller": copy.deepcopy(self._memory_controller)
+        })
 
     # Reset the flag variable that indicates a change in machine state
     def reset_next_event(self):
@@ -236,11 +247,17 @@ class Tomasulo:
 
     # Return the flag that indicates that the machine state has changed
     def next_event_occured(self):
+        if self._n_complete == len(self._instructions):
+            return "completed"
+
         return self._next_event
 
     # Get the cycle-by-cycle execution history of the machine
-    def get_history(self):
-        return self._historyBuffer
+    def get_history(self, index):
+        if index > len(self._historyBuffer):
+            return None
+
+        return self._historyBuffer[index]
 
     # Get the CPU clock cycle
     def get_cpu_clock(self):
@@ -304,7 +321,6 @@ if __name__ == "__main__":
     # Main event loop
     while True:
         event, values = window.read(timeout=frameDuration)
-        done = False
 
         if event == sg.WIN_CLOSED or machine.get_cpu_clock() > 1000:
             break
@@ -320,44 +336,6 @@ if __name__ == "__main__":
             window["pause_button"].update(text="Continue")
 
             GUI.generateInstructionPopup()
-
-        elif event == "pause_button":
-            if RUN:
-                window["pause_button"].update(text="Continue")
-            else:
-                window["pause_button"].update(text="  Pause  ")
-
-            RUN = not RUN
-
-        elif event in ["previous_button", "next_button"] and not RUN:
-
-            if backwards < machine.get_cpu_clock() and event == "previous_button":
-                backwards += 1
-            if backwards < machine.get_cpu_clock() and event == "next_button":
-                backwards -= 1
-
-            index = machine.get_cpu_clock() - backwards
-            history = machine.get_history()
-
-            if index < len(history) and index != 0:
-                GUI.updateContents(
-                    window,
-                    index + 1,
-                    history[index][0],
-                    history[index][1],
-                    resStats=history[index][2],
-                    ARF=history[index][3],
-                    LS_Buffer=history[index][4],
-                    MemCtl=history[index][5]
-                )
-
-                done = True
-
-        elif event == "next_event_button":
-            if RUN:
-                while not machine.next_event_occured():
-                    machine.logic_loop()
-                machine.reset_next_event()
 
         elif event in ["Load new program", "Load new data memory"] and not RUN:
             if event == "Load new program":
@@ -397,33 +375,58 @@ if __name__ == "__main__":
                     window.read(timeout=1)
                     window["pause_button"].update(text="Start")
 
-        if RUN or (not RUN and not done and event in ["next_button", "next_event_button"]):
-            # Reset the history/step controls
-            if backwards > 1:
-                index = machine.get_cpu_clock() - backwards
-                history = machine.get_history()
+        elif event == "pause_button":
+            if RUN:
+                window["pause_button"].update(text="Continue")
+                RUN = False
+            else:
+                window["pause_button"].update(text="  Pause  ")
+                RUN = True
 
-                if event == "next_event_button":
-                    while not history[index][5]:
-                        backwards -= 1
-                        index = machine.get_cpu_clock() - backwards
-
-                GUI.updateContents(
-                    window,
-                    index + 1,
-                    history[index][0],
-                    history[index][1],
-                    resStats=history[index][2],
-                    ARF=history[index][3],
-                    LS_Buffer=history[index][4],
-                    MemCtl=history[index][5]
-                )
-
+        elif event in ["previous_button", "next_button"] and not RUN:
+            if backwards < machine.get_cpu_clock() and event == "previous_button":
+                if backwards == 0:
+                    backwards = 2
+                else:
+                    backwards += 1
+            if backwards > 0 and event == "next_button":
                 backwards -= 1
 
-            else:
+        if RUN or (not RUN and event in ["next_button", "previous_button", "next_event_button"]):
+            # Reset the history/step controls
+            if backwards > 0:
+                index = machine.get_cpu_clock() - backwards
+                history = machine.get_history(index)
+
+                if not history:
+                    continue
+
                 if event == "next_event_button":
-                    while not machine.next_event_occured():
+                    if history["next_event"] and backwards > 0:
+                        backwards -= 1
+
+                    while (not history["next_event"]) and backwards > 0:
+                        index = machine.get_cpu_clock() - backwards
+                        history = machine.get_history(index)
+                        backwards -= 1
+
+                GUI.updateContents(
+                    window=window,
+                    cycle=f"{index + 1}/{machine.get_cpu_clock()}",
+                    instructionTable=history["instruction_table"],
+                    ROB=history["ROB"],
+                    RS_buffers=history["RS"],
+                    ARF=history["ARF"],
+                    LS_Buffer=history["LSQ"],
+                    MemCtl=history["memory_controller"]
+                )
+
+                if RUN:
+                    backwards -= 1
+
+            elif event not in ["previous_button"]:
+                if event == "next_event_button":
+                    while machine.next_event_occured() not in [True, "completed"]:
                         machine.logic_loop()
                     machine.reset_next_event()
                 else:

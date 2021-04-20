@@ -42,7 +42,7 @@ class Graphics():
                 "metadata": {
                     "cycle": 0,
                     "data-mem": {
-                        "contents": [[hex(addr), bin(0), hex(0), 0] for addr in range(64)]
+                        "contents": [[hex(addr+1), bin(0), hex(0), 0] for addr in range(64)]
                     }
                 },
                 "caches": {
@@ -106,7 +106,7 @@ class Graphics():
             layout=[[sg.Text(
                     text=self._machine_state["metadata"]["cycle"],
                     key="cycle_number",
-                    size=(4, 1),
+                    size=(8, 1),
                     text_color="black",
                     font=f"Times {self._font_size+2}",
                     )]],
@@ -141,7 +141,8 @@ class Graphics():
             "          Data(bin)          ",
             "Data(hex)", "Data(decimal)"
         ]
-        cacheHeading = lambda x: [f"  Tag  {x}", f"Value {x}", f"Dirty {x}", f"Valid {x}", f"Busy {x}"]
+        def cacheHeading(x): return [
+            f"  Tag  {x}", f"Value {x}", f"Dirty {x}", f"Valid {x}", f"Busy {x}"]
         l1CacheHeading = []
         l2CacheHeading = []
 
@@ -426,9 +427,9 @@ class Graphics():
         self._machine_state["ROB"]["contents"] = insts
 
     # Function to convert the RS data into the _machine_state
-    def __convertReservationStation(self, resStats):
+    def __convertReservationStation(self, RS_buffers):
         insts = []
-        for name, resStat in resStats.items():
+        for name, resStat in RS_buffers.items():
             for entry in resStat._buffer:
                 data = []
                 if entry:
@@ -487,7 +488,7 @@ class Graphics():
 
         for addr, mem_row in enumerate(controller.get_memory()):
             data = []
-            data.append(hex(addr))
+            data.append(hex(addr+1))
             data.append(mem_row)
             data.append(hex(int(mem_row, 2)))
             data.append(int(mem_row, 2))
@@ -519,10 +520,10 @@ class Graphics():
                     data.append(entry.get_busy_bit())
                 else:
                     data = data + [""]*4
-            
-            print(data)
+
+            # print(data)
             l2_cache.append(data)
-        print()
+        # print()
 
         self._machine_state["metadata"]["data-mem"]["contents"] = mem
         self._machine_state["caches"]["L1"]["contents"] = l1_cache
@@ -530,7 +531,7 @@ class Graphics():
 
     # Function to call the individual update blocks. This function is called from the main event loop
 
-    def updateContents(self, window, cycle, instructionTable=None, ROB=None, resStats=None, ARF=None, LS_Buffer=None, MemCtl=None):
+    def updateContents(self, window, cycle, instructionTable=None, ROB=None, RS_buffers=None, ARF=None, LS_Buffer=None, MemCtl=None):
         self._machine_state["metadata"]["cycle"] = cycle
         window["cycle_number"].update(
             value=self._machine_state["metadata"]["cycle"])
@@ -544,8 +545,8 @@ class Graphics():
             self.__convertROB(ROB)
             window['rob'].update(self._machine_state["ROB"]["contents"])
 
-        if resStats:
-            self.__convertReservationStation(resStats)
+        if RS_buffers:
+            self.__convertReservationStation(RS_buffers)
             window['reserve_station'].update(
                 self._machine_state["Reservation Station"]["contents"])
 
@@ -562,7 +563,7 @@ class Graphics():
             self.__convertMemCtl(MemCtl)
             window['data_mem_table'].update(
                 self._machine_state["metadata"]["data-mem"]["contents"])
-            
+
             window['l1_cache_table'].update(
                 self._machine_state["caches"]["L1"]["contents"])
 
@@ -591,7 +592,7 @@ class Graphics():
             "metadata": {
                 "cycle": 0,
                 "data-mem": {
-                    "contents": [[hex(addr), bin(0), hex(0), 0] for addr in range(64)]
+                    "contents": [[hex(addr+1), bin(0), hex(0), 0] for addr in range(64)]
                 }
             },
             "caches": {

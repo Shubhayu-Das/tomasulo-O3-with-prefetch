@@ -12,7 +12,7 @@ Feel free to raise Issues for feature requests and bugs.
 The original code is publicly available [here](https://gitlab.com/shubhayu-das/tomasulo-o3-processor-simulator). We will make the original repo public on Github after our course is complete.
 
 
-Version: 1.2.0
+Version: 1.5.0
 
 -------------------
 ### Students
@@ -29,7 +29,7 @@ Updated GUI to accomodate cache and data memory display.
 
 ### Future improvements
 1. Develop cache, which can accept prefetching and replacement policies
-2. Develop base next-line prefetchet
+2. Develop base next-line prefetcher
 3. Develop base LRU replacement policy
 4. Integrate everything with existing codebase and GUI
 5. Add additional prefetchers and replacement policies
