@@ -144,16 +144,16 @@ class ReservationStation:
         return True
 
     # Function to update the values of the RS entries on a CDB broadcast
-    def update_rs_entries(self, robEntry):
+    def update_rs_entries(self, rob_entry):
         for entry in self._buffer:
-            if entry and robEntry:
-                if entry._src_tag1 == robEntry.get_name():
-                    entry._src_val1 = robEntry.get_value()
+            if entry and rob_entry:
+                if entry._src_tag1 == rob_entry.get_name():
+                    entry._src_val1 = rob_entry.get_value()
                     entry._src_tag1 = "-"
                     entry._rob_updated = True
 
-                if entry._src_tag2 == robEntry.get_name():
-                    entry._src_val2 = robEntry.get_value()
+                if entry._src_tag2 == rob_entry.get_name():
+                    entry._src_val2 = rob_entry.get_value()
                     entry._src_tag2 = "-"
                     entry._rob_updated = True
 
@@ -162,7 +162,7 @@ class ReservationStation:
         if isinstance(entry, Instruction):
             for e in self._buffer:
                 if e:
-                    if e._instruction.PC == entry.PC:
+                    if e._instruction == entry:
                         entry = e
                         break
 
@@ -189,7 +189,7 @@ class ReservationStation:
     def get_entry(self, instr):
         if isinstance(instr, Instruction):
             for entry in self._entries:
-                if entry.get_inst().PC == instr.PC:
+                if entry.get_inst() == instr:
                     return entry
         else:
             return None

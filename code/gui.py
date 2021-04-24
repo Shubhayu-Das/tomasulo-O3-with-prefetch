@@ -56,7 +56,7 @@ class Graphics():
             }
 
     # Function to generate a table, given the data and other hyperparameters
-    def __generateTable(self, title, data, headings, n_rows=5, key="table"):
+    def __generate_table(self, title, data, headings, n_rows=5, key="table"):
         row_contents = data["contents"]
         hide_vertical_scroll = True
 
@@ -83,7 +83,7 @@ class Graphics():
         )]
 
     # Function to generate the overall layout, with some dummy initial content
-    def generateLayout(self):
+    def generate_layout(self):
         width, height = sg.Window.get_screen_size()
         aspect_ratio = width/height
 
@@ -164,53 +164,62 @@ class Graphics():
         ]
 
         # Generate each of the tables
-        instructionTable = self.__generateTable(
+        instructionTable = self.__generate_table(
             "Instruction Queue",
             instructions,
             instructionsHeading,
             n_rows=7,
             key="inst_table"
         )
-        loadStoreBufferTable = self.__generateTable(
+
+        instructionTableCacheTab = self.__generate_table(
+            "Instruction Queue",
+            instructions,
+            instructionsHeading,
+            n_rows=7,
+            key="inst_table_cache_tab"
+        )
+
+        loadStoreBufferTable = self.__generate_table(
             "Load Store Buffer",
             buffer,
             bufferHeading,
             n_rows=3,
             key="ls_buffer_table"
         )
-        reservationStationTable = self.__generateTable(
+        reservationStationTable = self.__generate_table(
             "Reservation Station",
             reserv,
             reservationHeading,
             key="reserve_station"
         )
-        ROBTable = self.__generateTable("ROB",
+        ROBTable = self.__generate_table("ROB",
                                         ROB,
                                         robHeading,
                                         n_rows=8,
                                         key="rob"
                                         )
-        ARFTable = self.__generateTable("ARF",
+        ARFTable = self.__generate_table("ARF",
                                         ARF,
                                         arfHeading,
                                         n_rows=LIMIT,
                                         key="arf"
                                         )
-        CycleInfoTable = self.__generateTable(
+        CycleInfoTable = self.__generate_table(
             "No. of Cycles",
             nCycles,
             cycleHeading,
             n_rows=len(NumCycles),
             key="num_cycles"
         )
-        L1_cache_table = self.__generateTable("L1 cache",
+        L1_cache_table = self.__generate_table("L1 cache",
                                               L1_cache,
                                               l1CacheHeading,
                                               n_rows=min(LIMIT, int(
                                                   L1D_CACHE_SIZE/L1D_WAYS) + 1),
                                               key="l1_cache_table"
                                               )
-        L2_cache_table = self.__generateTable("L2 cache",
+        L2_cache_table = self.__generate_table("L2 cache",
                                               L2_cache,
                                               l2CacheHeading,
                                               n_rows=min(LIMIT, int(
@@ -304,7 +313,7 @@ class Graphics():
             title="Cache",
             layout=[[sg.Column(
                 layout=[
-                    L1_cache_table, L2_cache_table
+                    instructionTableCacheTab, L1_cache_table, L2_cache_table
                 ],
                 element_justification="center",
                 scrollable=allowScroll,
@@ -318,7 +327,7 @@ class Graphics():
 
         # Tab 3 code starts
         # This tab shows the data memory, for completeness
-        dataMemoryTable = self.__generateTable(
+        dataMemoryTable = self.__generate_table(
             "Data Memory",
             self._machine_state["metadata"]["data-mem"],
             dataMemoryHeading,
@@ -358,12 +367,12 @@ class Graphics():
         return displayLayout
 
     # Function to generate the GUI window
-    def generateWindow(self):
+    def generate_window(self):
         sg.theme('Material2')
 
         return sg.Window(
             'Tomasulo OOO processor sim',
-            self.generateLayout(),
+            self.generate_layout(),
             font=f"Times {self._font_size}",
             size=sg.Window.get_screen_size(),
             element_padding=(int(self._font_size/2), int(self._font_size/2)),
@@ -391,7 +400,7 @@ class Graphics():
         self._machine_state["Instruction Table"]["contents"] = insts
 
     # Function to convert the ARF data into the _machine_state
-    def __convertARF(self, ARFTable):
+    def __convert_ARF(self, ARFTable):
         insts = []
 
         for register in list(ARFTable.get_entries().values())[:LIMIT]:
@@ -407,7 +416,7 @@ class Graphics():
         self._machine_state["ARF"]["contents"] = insts
 
     # Function to convert the ROBTable data into the _machine_state
-    def __convertROB(self, rob):
+    def __convert_ROB(self, rob):
         insts = []
         for name, entry in rob.get_entries().items():
             data = []
@@ -453,7 +462,7 @@ class Graphics():
         self._machine_state["Reservation Station"]["contents"] = insts
 
     # Function to convert the LSQ data into the _machine_state
-    def __convertLSBuffer(self, LW_SW):
+    def __convert_LS_buffer(self, LW_SW):
         insts = []
         for entry in LW_SW.get_entries():
             data = []
@@ -539,7 +548,7 @@ class Graphics():
 
     # Function to call the individual update blocks. This function is called from the main event loop
 
-    def updateContents(self, window, cycle, instructionTable=None, ROB=None, RS_buffers=None, ARF=None, LS_Buffer=None, MemCtl=None):
+    def update_contents(self, window, cycle, instructionTable=None, ROB=None, RS_buffers=None, ARF=None, LS_Buffer=None, MemCtl=None):
         self._machine_state["metadata"]["cycle"] = cycle
         window["cycle_number"].update(
             value=self._machine_state["metadata"]["cycle"])
@@ -548,9 +557,11 @@ class Graphics():
             self.__convertInstructionTable(instructionTable)
             window['inst_table'].update(
                 self._machine_state["Instruction Table"]["contents"])
+            window['inst_table_cache_tab'].update(
+                self._machine_state["Instruction Table"]["contents"])
 
         if ROB:
-            self.__convertROB(ROB)
+            self.__convert_ROB(ROB)
             window['rob'].update(self._machine_state["ROB"]["contents"])
 
         if RS_buffers:
@@ -559,11 +570,11 @@ class Graphics():
                 self._machine_state["Reservation Station"]["contents"])
 
         if ARF:
-            self.__convertARF(ARF)
+            self.__convert_ARF(ARF)
             window['arf'].update(self._machine_state["ARF"]["contents"])
 
         if LS_Buffer:
-            self.__convertLSBuffer(LS_Buffer)
+            self.__convert_LS_buffer(LS_Buffer)
             window['ls_buffer_table'].update(
                 self._machine_state["Load Store Buffer"]["contents"])
 
@@ -580,7 +591,7 @@ class Graphics():
 
     # Function to reset the machine state in GUI
     # Used after loading in a new program
-    def resetState(self):
+    def reset_state(self):
         self._machine_state = {
             "Instruction Table": {
                 "contents": [[""]*6]*5
@@ -677,7 +688,7 @@ if __name__ == "__main__":
 
     GUI = Graphics()
 
-    window = GUI.generateWindow()
+    window = GUI.generate_window()
 
     while True:
         event, values = window.read(timeout=100)

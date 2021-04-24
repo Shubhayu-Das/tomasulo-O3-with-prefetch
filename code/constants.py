@@ -9,7 +9,7 @@ This file contains some important constants that are used to modify the behaviou
 # Some variables that affect the output of the program
 # Set DEBUG to True to enable text output to the terminal
 DEBUG = False
-VERSION = "1.6.0 beta"
+VERSION = "1.7.0"
 
 # Font size for the text in the GUI
 # Decrease if content doesn't seem to fitting in properly
@@ -35,7 +35,7 @@ L1D_CACHE_LATENCY = 1
 L2D_CACHE_LATENCY = 5
 MEMORY_LATENCY = 10
 
-#Prefetcher
+# Prefetcher
 PREFETCHER_ON = False
 
 # The number of cycles taken by each supported instruction to execute

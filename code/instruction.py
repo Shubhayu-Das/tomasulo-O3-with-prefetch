@@ -277,3 +277,9 @@ class Instruction:
                 return f"<[PC={self.PC}] offset:{self.offset} rs2:{self.rs2} rs1:{self.rs1} funct3:{self.funct3} opcode:{self.opcode}>"
         else:
             return f"<[PC={self.PC}] funct7:{self.funct7} rs2:{self.rs2} rs1:{self.rs1} funct3:{self.funct3} rd:{self.rd} opcode:{self.opcode}>"
+
+    def __eq__(self, other):
+        return self.PC == other.PC
+
+    def __ne__(self, other):
+        return self.PC != other.PC

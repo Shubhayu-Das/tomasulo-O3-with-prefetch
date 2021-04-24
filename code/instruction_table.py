@@ -134,7 +134,7 @@ class InstructionTable:
     def get_entry(self, index):
         if isinstance(index, Instruction):
             for entry in self._entries:
-                if entry.get_inst().PC == index.PC:
+                if entry.get_inst() == index:
                     return entry
 
     # Function to get all the entries stored in the table

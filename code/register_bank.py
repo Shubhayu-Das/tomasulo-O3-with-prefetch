@@ -79,14 +79,14 @@ class RegisterBank:
 
     # Function to update the value of a particular ARF register
     # The input is a ROB entry, which contains the new value
-    def update_register(self, robEntry):
-        name = robEntry.get_destination().get_name()
-        self._bank[name].set_value(robEntry.get_value())
+    def update_register(self, rob_entry):
+        name = rob_entry.get_destination().get_name()
+        self._bank[name].set_value(rob_entry.get_value())
 
         # Remove the link only if the links match
         # If they don't match, the register has been renamed again, the new link
         # needs to be preserved
-        if self._bank[name].get_link() == robEntry.get_name():
+        if self._bank[name].get_link() == rob_entry.get_name():
             self._bank[name].set_link(None)
 
     def __str__(self):

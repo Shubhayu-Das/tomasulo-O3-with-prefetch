@@ -133,7 +133,7 @@ class LoadStoreBuffer:
         if isinstance(entry, Instruction):
             for e in self._buffer:
                 if e:
-                    if e._instruction.PC == entry.PC:
+                    if e._instruction == entry:
                         entry = e
                         break
 
@@ -152,18 +152,18 @@ class LoadStoreBuffer:
         else:
             return False
 
-    def update_rs_entries(self, robEntry):
+    def update_rs_entries(self, rob_entry):
         for entry in self._buffer:
-            if entry and robEntry:
+            if entry and rob_entry:
                 baseReg = entry._base
                 dataReg = entry._data_src
 
-                if baseReg.get_link() == robEntry.get_name() and entry._base_val == "-":
-                    entry._base_val = robEntry.get_value()
+                if baseReg.get_link() == rob_entry.get_name() and entry._base_val == "-":
+                    entry._base_val = rob_entry.get_value()
 
                 if entry._data_src:
-                    if dataReg.get_link() == robEntry.get_name() and entry._data_src_val == "-":
-                        entry._data_src_val = robEntry.get_value()
+                    if dataReg.get_link() == rob_entry.get_name() and entry._data_src_val == "-":
+                        entry._data_src_val = rob_entry.get_value()
 
     # Function to tell if the buffer is full and can't accept more dispatches
     def is_busy(self):

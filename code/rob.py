@@ -16,7 +16,7 @@ from constants import DEBUG
 
 # Data structure to represent each entry of the ROB
 # Stores the Instruction object, the desination Register and the value to be written
-class ROBEntry:
+class rob_entry:
     def __init__(self, inst, destination, value, name=""):
         self._name = name
         self._inst = inst
@@ -48,9 +48,10 @@ class ROBEntry:
 
 
 # Data structure to represent the ROB table, a cicular buffer effectively
-# The ROBEntry elements aer stored in a dictionary
+# The rob_entry elements aer stored in a dictionary
 class ROBTable:
     def __init__(self, size=8):
+        self._size = size
         self._tail = 1
         self._head = 1
         self._bank = defaultdict(None, {})
@@ -58,16 +59,19 @@ class ROBTable:
         for i in range(1, size+1):
             self._bank.update({f"ROB{i}": None})
 
+    def is_full(self):
+        return len(list(filter(None, self._bank.values()))) == self._size
+
     # Function to add an entry to the head of the ROB, if possible
     def add_entry(self, inst, dest=None):
-        if self._bank[f"ROB{self._head}"]:
+        if self.is_full():
             if DEBUG:
                 print("ROB FULL")
             return False
 
         name = f"ROB{self._head}"
 
-        new_entry = ROBEntry(
+        new_entry = rob_entry(
             inst=inst,
             destination=dest,
             value="NA",
@@ -90,7 +94,7 @@ class ROBTable:
     def update_value(self, inst, value):
         for entry in list(self._bank.values()):
             if entry:
-                if entry.get_inst().PC == inst.PC:
+                if entry.get_inst() == inst:
                     entry.set_value(value)
                     return entry
 
@@ -113,7 +117,7 @@ class ROBTable:
 
         return removedValue
 
-    # Function to get the value stored in a particular ROBEntry
+    # Function to get the value stored in a particular rob_entry
     def get_value(self, entry):
         if entry:
             return self._bank[entry].get_value()

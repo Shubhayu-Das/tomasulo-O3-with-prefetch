@@ -1,6 +1,9 @@
 from collections import defaultdict
 from math import log2
-from copy import deepcopy
+import copy
+
+from constants import DEBUG
+
 
 class CacheEntry:
     def __init__(self):
@@ -46,8 +49,6 @@ class CacheEntry:
 
     def get_tag(self):
         return self._tag
-
-
 
     def __str__(self):
         return f"<[{'VALID' if self._valid_bit else 'INVALID'}]CacheEntry: tag: {self._tag}, value: {self._value} [{'NOT ' if not self._dirty_bit else ''}DIRTY]>"
@@ -148,13 +149,13 @@ class Cache:
 
     # Function to add a new entry into the cache
     # Utilizes the replacement policy to find a new cache memory location
-    def add_entry(self, data, addr,dirty_bit=False,busy_bit=False):
+    def add_entry(self, data, addr, dirty_bit=False, busy_bit=False):
         evict_way_index = self._replacement_policy.evict_index(addr)
         evict_way = list(self._mem[0].keys())[evict_way_index]
 
         index = addr % self._n_rows
 
-        evicting_entry = deepcopy(self._mem[index][evict_way])
+        evicting_entry = copy.deepcopy(self._mem[index][evict_way])
         was_dirty_true = evicting_entry.get_dirty_bit()
         was_value = evicting_entry.get_cache_value()
         was_tag = evicting_entry.get_tag()
@@ -166,16 +167,24 @@ class Cache:
                 return False
 
         updated_tag = addr // self._n_rows
-        print("Updating tag ",tag," value ",data)
+
+        if DEBUG:
+            print("Updating tag ", tag, " value ", data)
+
         self._mem[index][evict_way].update_entry(
             data, tag, dirty_bit, True, busy_bit)
 
         self._replacement_policy.update_lru(evict_way_index, addr)
-        print(was_dirty_true,was_value)
+
+        if DEBUG:
+            print(was_dirty_true, was_value)
+
         if(was_dirty_true):
-            print("Evict tag ",was_tag," Value ",was_value)
+            if DEBUG:
+                print("Evict tag ", was_tag, " Value ", was_value)
+
             was_tag = int(was_tag*(2**log2(self._n_rows)))
-            return [was_tag+index,was_value]
+            return [was_tag+index, was_value]
         else:
             return False
 

@@ -30,7 +30,7 @@ class Tomasulo:
     def __init__(self, program_src, data_mem):
         # Global variables that are needed throughout here
         self._instructions = []
-        self._historyBuffer = []
+        self._history_buffer = []
         self._clock_cycle = 0
         self._next_event = False
         self._n_complete = 0
@@ -70,7 +70,7 @@ class Tomasulo:
 
     # Function to try and dispatch next instruction if corresponding RS is free
     # Updates all relevant source mappings too
-    def tryDispatch(self, robEntry):
+    def try_dispatch(self, rob_entry):
         for it_entry in self._instructionTable.get_entries():
             if it_entry.get_state() == constants.RunState.NOT_STARTED:
                 instruction = it_entry.get_inst()
@@ -86,7 +86,7 @@ class Tomasulo:
                     RS = self._LSQ
 
                 if RS:
-                    if not RS.is_busy():
+                    if not RS.is_busy() and not self._ROB.is_full():
                         if RS.add_entry(instruction, self._ARF):
                             # Store word instructions have no destination register
                             # We still need to make a ROB entry for in-order commit
@@ -104,12 +104,16 @@ class Tomasulo:
 
                             break
 
-                        if RS in [self._ADD_RS, self._MUL_RS, self._LSQ]:
-                            RS.update_rs_entries(robEntry)
+        if rob_entry:
+            for RS in [self._LSQ, self._ADD_RS, self._MUL_RS]:
+                RS.update_rs_entries(rob_entry)
+
+                if constants.DEBUG:
+                    print("Updating using: ", rob_entry.get_name())
 
     # Function to simulate the execution of the process. This includes dispatching
     # self._instructions and handling their execution steps
-    def tryExecute(self):
+    def try_execute(self):
         for RS in [self._LSQ, self._ADD_RS, self._MUL_RS]:
             for rs_entry in RS.get_entries():
                 if rs_entry:
@@ -138,30 +142,29 @@ class Tomasulo:
                 it_entry.ex_tick(self._clock_cycle)
 
     # Function to perform the CDB broadcast, when an instruction has completed executing
-    def tryCDBBroadcast(self):
+    def try_CDB_broadcast(self):
         for it_entry in self._instructionTable.get_entries():
             if it_entry.get_state() == constants.RunState.EX_END:
 
-                if it_entry.get_inst().disassemble()["command"] == "SW":
+                if it_entry.get_inst().disassemble()["command"] in ["SW"]:
                     it_entry.cdb_write("-")
-                    self._next_event = True
                 else:
                     it_entry.cdb_write(self._clock_cycle)
 
                     value = it_entry.get_result()
-                    robEntry = self._ROB.update_value(
+                    rob_entry = self._ROB.update_value(
                         it_entry.get_inst(), value)
 
-                    if robEntry:
+                    if rob_entry:
                         for RS in [self._ADD_RS, self._MUL_RS, self._LSQ]:
-                            RS.update_rs_entries(robEntry)
+                            RS.update_rs_entries(rob_entry)
 
                     self._next_event = True
-                    return robEntry
+                    return rob_entry
 
     # Function to commit the result of an instruction, if it has completed CDB broadcast
     # and is at the tail of the self._ROB
-    def tryCommit(self):
+    def try_commit(self):
         for it_entry in self._instructionTable.get_entries():
             if it_entry.get_state() == constants.RunState.MEM_WRITE:
                 if it_entry.mem_tick():
@@ -181,15 +184,16 @@ class Tomasulo:
                 continue
 
             elif it_entry.get_state() == constants.RunState.CDB:
-                if it_entry.get_inst().PC != self._ROB.get_tail_inst().PC:
-                    continue
+                if self._ROB.get_tail_inst() is not None:
+                    if it_entry.get_inst() != self._ROB.get_tail_inst():
+                        continue
 
-                robEntry = self._ROB.remove_entry()
-                if robEntry:
+                rob_entry = self._ROB.remove_entry()
+                if rob_entry:
                     it_entry.commit(self._clock_cycle)
 
                     if it_entry.get_inst().disassemble()["command"] not in ["SW"]:
-                        self._ARF.update_register(robEntry)
+                        self._ARF.update_register(rob_entry)
                         self._n_complete += 1
                     else:
                         it_entry.mem_access()
@@ -220,16 +224,16 @@ class Tomasulo:
 
         # Execute each of the steps in reverse-pipeline order
         # The reverse order is to make sure that the previous instruction completes its stages
-        self.tryCommit()
-        robEntry = self.tryCDBBroadcast()
-        self.tryExecute()
+        self.try_commit()
+        rob_entry = self.try_CDB_broadcast()
+        self.try_execute()
 
         # This is needed because I am dispatching after broadcasting.
         # This is a race condition effectively
-        self.tryDispatch(robEntry)
+        self.try_dispatch(rob_entry)
 
         # Update the changes into the history buffer
-        self._historyBuffer.append({
+        self._history_buffer.append({
             "instruction_table": copy.deepcopy(self._instructionTable),
             "ROB": copy.deepcopy(self._ROB),
             "RS": {
@@ -248,6 +252,10 @@ class Tomasulo:
 
     # Return the flag that indicates that the machine state has changed
     def next_event_occured(self):
+        # Cap the longest search for the next event
+        if self._clock_cycle > 55*len(self._instructions):
+            return "completed"
+
         if self._n_complete == len(self._instructions):
             return "completed"
 
@@ -255,10 +263,10 @@ class Tomasulo:
 
     # Get the cycle-by-cycle execution history of the machine
     def get_history(self, index):
-        if index > len(self._historyBuffer):
+        if index > len(self._history_buffer):
             return None
 
-        return self._historyBuffer[index]
+        return self._history_buffer[index]
 
     # Get the CPU clock cycle
     def get_cpu_clock(self):
@@ -317,7 +325,7 @@ if __name__ == "__main__":
     frameDuration = constants.CYCLE_DURATION
 
     GUI = Graphics()
-    window = GUI.generateWindow()
+    window = GUI.generate_window()
 
     # Main event loop
     while True:
@@ -361,8 +369,8 @@ if __name__ == "__main__":
                     machine = Tomasulo(program_src, data_mem_src)
                     backwards = 0
 
-                    GUI.resetState()
-                    GUI.updateContents(
+                    GUI.reset_state()
+                    GUI.update_contents(
                         window,
                         machine.get_cpu_clock(),
                         machine.get_instruction_table(),
@@ -411,7 +419,7 @@ if __name__ == "__main__":
                         history = machine.get_history(index)
                         backwards -= 1
 
-                GUI.updateContents(
+                GUI.update_contents(
                     window=window,
                     cycle=f"{index + 1}/{machine.get_cpu_clock()}",
                     instructionTable=history["instruction_table"],
@@ -435,7 +443,7 @@ if __name__ == "__main__":
                     machine.logic_loop()
 
                 # Render the contents to the GUI
-                GUI.updateContents(
+                GUI.update_contents(
                     window,
                     machine.get_cpu_clock(),
                     machine.get_instruction_table(),
