@@ -2,6 +2,7 @@ import os
 from helpers import pad
 from constants import WORD_SIZE, L1D_CACHE_LATENCY, L2D_CACHE_LATENCY, MEMORY_LATENCY, DEBUG
 from constants import L1D_CACHE_SIZE, L2D_CACHE_SIZE, L1D_WAYS, L2D_WAYS
+from constants import PREFETCHER_ON
 
 from cache import Cache
 from cache_algos.prefetcher.next_line import Prefetcher
@@ -21,7 +22,7 @@ class MemoryController:
         self.load_memory()
 
         if enable_L1:
-            self._L1D = Cache(L1D_CACHE_SIZE, "L1D", L1D_WAYS, False, Replacement_policy(
+            self._L1D = Cache(L1D_CACHE_SIZE, "L1D", L1D_WAYS, True, Replacement_policy(
                 L1D_CACHE_SIZE, L1D_WAYS))  # have to update
 
         if enable_L2:
@@ -67,22 +68,23 @@ class MemoryController:
     def mem_write(self, addr, data):
         if addr > self._size:
             return False
-
+        print("mem write addr",addr)
         if self._L1D.set_entry(addr, data):
-            return data  # have to design still
-        elif self._L2D.set_entry(addr, data):
-            if(self._L1D.get_prefetch_on_miss()):
-                self._L1D.add_entry(data, addr)
-            return data  # have to still design
+            self._L2D.update_busy_bit(addr,True)
+            self._mem_busy_bit[addr] = True
+            return data  
         else:
-            if(self._L1D.get_prefetch_on_miss()):
-                self._L1D.add_entry(data, addr)
-            if(self._L2D.get_prefetch_on_miss()):
-                self._L2D.add_entry(data, addr)
-            self._memory[addr] = data
-            self.save_memory()
-            return True
-
+            write_back = self._L1D.add_entry(data, addr, True,True)
+            if(write_back):
+                if(self._L2D.has_entry(addr)):
+                    self._L2D.set_entry(write_back[0],write_back[1])
+                else:
+                    write_back2 = self._L2D.add_entry(write_back[1],write_back[0],True,True)
+                    if(write_back2):
+                        self._memory[write_back2[0]] =  write_back2[1]
+                        self.save_memory()
+            return data
+        
     def update_busy_bit(self, addr, value=False):
         self._L1D.update_busy_bit(addr, value)
         self._L2D.update_busy_bit(addr, value)
@@ -102,13 +104,14 @@ class MemoryController:
 
         # [data_at_location, n_cycles_needed_for_access]
 
-        # prefetching part
-        prefetch_address = self._prefetcher.prefetch_address(addr)
-        if not self._mem_busy_bit[addr]:
-            mem_value = self._memory[addr]
+        # prefetching part :: NEED TO REVIEW
+        if(PREFETCHER_ON):
+            prefetch_address = self._prefetcher.prefetch_address(addr)
+            if not self._mem_busy_bit[prefetch_address]:
+                mem_value = self._memory[prefetch_address]
+                self._L2D.add_entry(mem_value, prefetch_address)
 
-        self._L2D.add_entry(mem_value, addr)
-
+        #accessing caches    
         value = self._L1D.get_memory_entry(addr)
         if not value:
             value = self._L2D.get_memory_entry(addr)
@@ -117,11 +120,32 @@ class MemoryController:
                     return False
                 else:
                     mem_value = self._memory[addr]
-                    self._L1D.add_entry(mem_value, addr)
-                    self._L2D.add_entry(mem_value, addr)
+                    write_back = self._L2D.add_entry(mem_value, addr)
+                    if(write_back):
+                        self._memory[write_back[0]] =  write_back[1]
+                        self.save_memory()                
+                    
+                    write_back = self._L1D.add_entry(mem_value, addr)
+                    if(write_back):
+                        if(self._L2D.has_entry(addr)):
+                            self._L2D.set_entry(write_back[0],write_back[1])
+                        else:
+                            write_back2 = self._L2D.add_entry(write_back[1],write_back[0],True,True)
+                            if(write_back2):
+                                self._memory[write_back2[0]] =  write_back2[1]
+                                self.save_memory()                     
+                    
                     return [mem_value, L1D_CACHE_LATENCY+L2D_CACHE_LATENCY+MEMORY_LATENCY]
             else:
-                self._L1D.add_entry(value, addr)
+                write_back = self._L1D.add_entry(value, addr)
+                if(write_back):
+                    if(self._L2D.has_entry(addr)):
+                        self._L2D.set_entry(write_back[0],write_back[1])
+                    else:
+                        write_back2 = self._L2D.add_entry(write_back[1],write_back[0],True,True)
+                        if(write_back2):
+                            self._memory[write_back2[0]] =  write_back2[1]
+                            self.save_memory()            
                 return [value[1], L1D_CACHE_LATENCY+L2D_CACHE_LATENCY]
         else:
             return [value[1], L1D_CACHE_LATENCY]

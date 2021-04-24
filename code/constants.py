@@ -24,7 +24,7 @@ WORD_SIZE = 32
 
 # Size of the various caches
 L1D_CACHE_SIZE = 2
-L2D_CACHE_SIZE = 8
+L2D_CACHE_SIZE = 4
 
 # Number of ways in the cache
 L1D_WAYS = 2
@@ -34,6 +34,9 @@ L2D_WAYS = 2
 L1D_CACHE_LATENCY = 1
 L2D_CACHE_LATENCY = 5
 MEMORY_LATENCY = 10
+
+#Prefetcher
+PREFETCHER_ON = False
 
 # The number of cycles taken by each supported instruction to execute
 NumCycles = {

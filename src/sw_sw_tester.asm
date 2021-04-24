@@ -1,0 +1,7 @@
+SW x1, 0(x2)
+SW x2, 1(x2)
+SW x3, 2(x2)
+SW x4, 3(x2)
+SW x5, 4(x2)
+SW x6, 5(x2)
+SW x8, 6(x2)
