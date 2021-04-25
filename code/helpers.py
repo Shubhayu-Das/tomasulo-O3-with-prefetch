@@ -3,19 +3,19 @@ def pad(number, n):
     number = number[2:]
     while len(number) < n:
         number = "0" + number
-
     return number
 
 # Function to convert integers to binary - using 2's complement
 
 
 def dec2bin(number, n_bits=32):
-    if(number & (1 << (n_bits - 1))) != 0:
-        number = number - (1 << n_bits)
+    bin_number='0'
+    if(number < 0):
+        bin_number = '1'
+        number =  2**(n_bits-1)+number
+    bin_number= bin_number + pad(bin(number).replace("0b","00"),n_bits-1)
+    return bin_number
 
-    formatter = "{" + f"0:0{n_bits}b" + "}"
-
-    return formatter.format(number).replace('-', '')
 
 # Function to convert binary to integer - using 2's complement
 
