@@ -21,7 +21,8 @@ def dec2bin(number, n_bits=32):
 
 
 def bin2dec(number):
-    pass
+    no_bits = len(number)
+    return -int(number[0])*2**(no_bits-1) + int(number[1:no_bits],2)
 
 
 if __name__ == "__main__":
