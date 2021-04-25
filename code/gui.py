@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 '''
 MIT Licensed by Shubhayu Das, copyright 2021
 
@@ -10,6 +8,7 @@ except main.py, which calls appropriate functions in the main event loop
 '''
 
 import PySimpleGUI as sg
+
 from constants import LIMIT, NumCycles, VERSION, GUI_FONTSIZE
 from constants import L1D_CACHE_LATENCY, L2D_CACHE_LATENCY, MEMORY_LATENCY
 from constants import L1D_CACHE_SIZE, L2D_CACHE_SIZE, L1D_WAYS, L2D_WAYS
@@ -47,10 +46,10 @@ class Graphics():
                 },
                 "caches": {
                     "L1": {
-                        "contents": [["" for ways in range(5*L1D_WAYS)] for _ in range(int(L1D_CACHE_SIZE/L1D_WAYS))]
+                        "contents": [["" for ways in range(5*L1D_WAYS)] for _ in range(L1D_CACHE_SIZE//L1D_WAYS)]
                     },
                     "L2": {
-                        "contents": [["" for ways in range(5*L2D_WAYS)] for _ in range(int(L2D_CACHE_SIZE/L2D_WAYS))]
+                        "contents": [["" for ways in range(5*L2D_WAYS)] for _ in range(L2D_CACHE_SIZE//L2D_WAYS)]
                     }
                 }
             }
@@ -67,7 +66,7 @@ class Graphics():
             values=row_contents,
             headings=headings,
             hide_vertical_scroll=hide_vertical_scroll,
-            def_col_width=int(self._font_size/2),
+            def_col_width=self._font_size//2,
             row_height=2*(self._font_size+1),
             justification="center",
             num_rows=n_rows,
@@ -194,17 +193,17 @@ class Graphics():
             key="reserve_station"
         )
         ROBTable = self.__generate_table("ROB",
-                                        ROB,
-                                        robHeading,
-                                        n_rows=8,
-                                        key="rob"
-                                        )
+                                         ROB,
+                                         robHeading,
+                                         n_rows=8,
+                                         key="rob"
+                                         )
         ARFTable = self.__generate_table("ARF",
-                                        ARF,
-                                        arfHeading,
-                                        n_rows=LIMIT,
-                                        key="arf"
-                                        )
+                                         ARF,
+                                         arfHeading,
+                                         n_rows=LIMIT,
+                                         key="arf"
+                                         )
         CycleInfoTable = self.__generate_table(
             "No. of Cycles",
             nCycles,
@@ -213,19 +212,19 @@ class Graphics():
             key="num_cycles"
         )
         L1_cache_table = self.__generate_table("L1 cache",
-                                              L1_cache,
-                                              l1CacheHeading,
-                                              n_rows=min(LIMIT, int(
-                                                  L1D_CACHE_SIZE/L1D_WAYS) + 1),
-                                              key="l1_cache_table"
-                                              )
+                                               L1_cache,
+                                               l1CacheHeading,
+                                               n_rows=min(LIMIT,
+                                                          L1D_CACHE_SIZE//L1D_WAYS + 1),
+                                               key="l1_cache_table"
+                                               )
         L2_cache_table = self.__generate_table("L2 cache",
-                                              L2_cache,
-                                              l2CacheHeading,
-                                              n_rows=min(LIMIT, int(
-                                                  L2D_CACHE_SIZE/L2D_WAYS) + 1),
-                                              key="l2_cache_table"
-                                              )
+                                               L2_cache,
+                                               l2CacheHeading,
+                                               n_rows=min(LIMIT,
+                                                          L2D_CACHE_SIZE//L2D_WAYS + 1),
+                                               key="l2_cache_table"
+                                               )
 
         # Define all the control buttons
         pauseButton = [sg.Button(
@@ -375,7 +374,7 @@ class Graphics():
             self.generate_layout(),
             font=f"Times {self._font_size}",
             size=sg.Window.get_screen_size(),
-            element_padding=(int(self._font_size/2), int(self._font_size/2)),
+            element_padding=(self._font_size//2, self._font_size//2),
             margins=(self._font_size, self._font_size),
             text_justification="center",
             resizable=True,
@@ -508,12 +507,16 @@ class Graphics():
             data = []
             for tag, entry in row.items():
                 if entry:
-                    data.append(entry.get_tag())
-                    temp = entry.get_cache_value()
-                    if isinstance(temp, list):
-                        data.append(temp[-1])
+                    if entry.get_tag() < 0:
+                        data.append("-")
+                        data.append("-")
                     else:
-                        data.append(temp)
+                        data.append(entry.get_tag())
+                        temp = entry.get_cache_value()
+                        if isinstance(temp, list):
+                            data.append(temp[-1])
+                        else:
+                            data.append(temp)
                     data.append(str(entry.get_dirty_bit())[0])
                     data.append(str(entry.get_valid_bit())[0])
                     data.append(str(entry.get_busy_bit())[0])
@@ -526,12 +529,16 @@ class Graphics():
             data = []
             for tag, entry in row.items():
                 if entry:
-                    data.append(entry.get_tag())
-                    temp = entry.get_cache_value()
-                    if isinstance(temp, list):
-                        data.append(temp[-1])
+                    if entry.get_tag() < 0:
+                        data.append("-")
+                        data.append("-")
                     else:
-                        data.append(temp)
+                        data.append(entry.get_tag())
+                        temp = entry.get_cache_value()
+                        if isinstance(temp, list):
+                            data.append(temp[-1])
+                        else:
+                            data.append(temp)
                     data.append(str(entry.get_dirty_bit())[0])
                     data.append(str(entry.get_valid_bit())[0])
                     data.append(str(entry.get_busy_bit())[0])
@@ -616,10 +623,10 @@ class Graphics():
             },
             "caches": {
                 "L1": {
-                    "contents": [["" for ways in range(5*L1D_WAYS)] for _ in range(int(L1D_CACHE_SIZE/L1D_WAYS))]
+                    "contents": [["" for ways in range(5*L1D_WAYS)] for _ in range(L1D_CACHE_SIZE//L1D_WAYS)]
                 },
                 "L2": {
-                    "contents": [["" for ways in range(5*L2D_WAYS)] for _ in range(int(L2D_CACHE_SIZE/L2D_WAYS))]
+                    "contents": [["" for ways in range(5*L2D_WAYS)] for _ in range(L2D_CACHE_SIZE//L2D_WAYS)]
                 }
             }
         }

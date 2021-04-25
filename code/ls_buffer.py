@@ -11,6 +11,7 @@ This is essentially a counterpart of the RS, for LW/SW instructions
 
 from constants import DEBUG
 from instruction import Instruction
+from helpers import bin2dec
 
 
 # Data structure to represent every entry in the load/store buffer
@@ -18,7 +19,7 @@ class LoadStoreBufferEntry:
     def __init__(self, instr, ARFTable):
         self._busy = True
         self._instruction = instr
-        self._offset = int(instr.offset, 2)
+        self._offset = bin2dec(instr.offset)
         self._base = ARFTable.get_register(instr.rs1)
         self._is_store = instr.disassemble()["command"] == "SW"
 

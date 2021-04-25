@@ -1,5 +1,6 @@
 import os
-from helpers import pad
+from helpers import pad, dec2bin
+
 from constants import WORD_SIZE, L1D_CACHE_LATENCY, L2D_CACHE_LATENCY, MEMORY_LATENCY, DEBUG
 from constants import L1D_CACHE_SIZE, L2D_CACHE_SIZE, L1D_WAYS, L2D_WAYS
 from constants import PREFETCHER_ON
@@ -52,7 +53,7 @@ class MemoryController:
             print("Memory loaded of size: ", self._size)
 
     def save_memory(self):
-        write_buffer = [pad(bin(line), WORD_SIZE) +
+        write_buffer = [dec2bin(line, WORD_SIZE) +
                         "\n" for line in self._memory]
         if len(write_buffer) != self._size:
             return False
@@ -156,7 +157,7 @@ class MemoryController:
     # Get the entire memory, for the GUI
 
     def get_memory(self):
-        return [f"0b{pad(bin(line), WORD_SIZE)}" for line in self._memory]
+        return [f"0b{dec2bin(line, WORD_SIZE)}" for line in self._memory]
 
     def get_l1_cache(self):
         return self._L1D.get_cache()

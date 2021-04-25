@@ -12,7 +12,7 @@ Feel free to raise Issues for feature requests and bugs.
 The original code is publicly available [here](https://gitlab.com/shubhayu-das/tomasulo-o3-processor-simulator). We will make the original repo public on Github after our course is complete.
 
 
-Version: 1.7.0
+Version: 1.8.0
 
 -------------------
 ### Students
@@ -37,6 +37,8 @@ Updated GUI to accomodate cache and data memory display.
 
 ### Software libraries
 
+Language: Python 3 (3.8.x)
+
 **GUI**
 
 The GUI needs the ```tkinter``` and ```pysimplegui```. These can be installed using the following commands:
@@ -53,6 +55,20 @@ $ pip install pysimplegui
 ```
 
 I have tested the code on Python 3.8.7 on both the OS (Windows 1903 build and Ubuntu 20.04.01 LTS), if there are any issues, please raise an Issue on Github. The GUI might appear different in different screens, depending on the aspect ratios. I have tried to make it useable, over looking pretty. For better control over the GUI, I would have to dive too deep(using tk or Qt5), which I can't bother to do now.
+
+**Type Checking**
+We have used ```mypy``` for static type checking. With all the data that is being passed around, things can become messy. Static type checking ensures we(or future contributors) know the exact type of each variable. Static type checking is not completely enforced everywhere.
+
+To run type checking, first install mypy. Then run it as follows:
+```bash
+# If you need to install mypy
+$ pip install mypy
+# To run static type checking on a single file
+$ mypy <filename>.py
+# To run type checking on the entire code/ folder
+$ mypy code/
+```
+You can try adding additional flags like ```--show-error-context```, as per need. Please ignore warnings about PySimpleGUI, which is beyond our control.
 
 **Linting**
 

@@ -1,5 +1,5 @@
 # Zero pad the binary numbers appropriately
-def pad(number, n):
+def pad(number: str, n: int) -> str:
     number = number[2:]
     while len(number) < n:
         number = "0" + number
@@ -8,21 +8,19 @@ def pad(number, n):
 # Function to convert integers to binary - using 2's complement
 
 
-def dec2bin(number, n_bits=32):
-    bin_number='0'
+def dec2bin(number: int, n_bits: int = 32) -> str:
+    bin_number = '0'
     if(number < 0):
         bin_number = '1'
-        number =  2**(n_bits-1)+number
-    bin_number= bin_number + pad(bin(number).replace("0b","00"),n_bits-1)
+        number = 2**(n_bits-1)+number
+    bin_number = bin_number + pad(bin(number), n_bits-1)
     return bin_number
 
 
 # Function to convert binary to integer - using 2's complement
-
-
-def bin2dec(number):
+def bin2dec(number: str) -> int:
     no_bits = len(number)
-    return -int(number[0])*2**(no_bits-1) + int(number[1:no_bits],2)
+    return -int(number[0])*2**(no_bits-1) + int(number[1:no_bits], 2)
 
 
 if __name__ == "__main__":

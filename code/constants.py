@@ -9,7 +9,7 @@ This file contains some important constants that are used to modify the behaviou
 # Some variables that affect the output of the program
 # Set DEBUG to True to enable text output to the terminal
 DEBUG = False
-VERSION = "1.7.0"
+VERSION = "1.8.0"
 
 # Font size for the text in the GUI
 # Decrease if content doesn't seem to fitting in properly

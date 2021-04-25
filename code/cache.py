@@ -1,68 +1,70 @@
-from collections import defaultdict
-from math import log2
 import copy
+from math import log2
+from typing import List, Dict
+from collections import defaultdict
 
 from constants import DEBUG
 
 
 class CacheEntry:
-    def __init__(self):
-        self._value = None
-        self._tag = None
-        self._valid_bit = False
-        self._dirty_bit = False
-        self._busy_bit = False
+    def __init__(self) -> None:
+        self._value: int = -1
+        self._tag: int = -1
+        self._valid_bit: bool = False
+        self._dirty_bit: bool = False
+        self._busy_bit: bool = False
 
-    def update_entry(self, new_value, tag, dirty_bit, valid_bit=True, busy_bit=False):
+    def update_entry(self, new_value: int, tag: int, dirty_bit: bool, valid_bit: bool = True, busy_bit: bool = False) -> None:
         self._value = new_value
         self._tag = tag
         self._dirty_bit = dirty_bit
         self._valid_bit = valid_bit
         self._busy_bit = busy_bit
 
-    def evict(self):
+    def evict(self) -> None:
         self._valid_bit = False
 
-    def write(self, new_value, dirty_bit=True):
-        self.updateEntry(new_value, dirty_bit, valid_bit=True)
+    def write(self, new_value: int, dirty_bit: bool = True) -> None:
+        self.update_entry(new_value, self._tag, dirty_bit, valid_bit=True)
 
-    def update_busy_bit(self, busy_bit):
+    def update_busy_bit(self, busy_bit: bool) -> None:
         self._busy_bit = busy_bit
 
-    def update_dirty_bit(self, dirty_bit):
+    def update_dirty_bit(self, dirty_bit: bool) -> None:
         self._dirty_bit = dirty_bit
 
-    def update_tag(self, new_tag):
+    def update_tag(self, new_tag: int) -> None:
         self._tag = new_tag
 
-    def get_busy_bit(self):
+    def get_busy_bit(self) -> bool:
         return self._busy_bit
 
-    def get_valid_bit(self):
+    def get_valid_bit(self) -> bool:
         return self._valid_bit
 
-    def get_dirty_bit(self):
+    def get_dirty_bit(self) -> bool:
         return self._dirty_bit
 
-    def get_cache_value(self):
+    def get_cache_value(self) -> int:
         return self._value
 
-    def get_tag(self):
+    def get_tag(self) -> int:
         return self._tag
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"<[{'VALID' if self._valid_bit else 'INVALID'}]CacheEntry: tag: {self._tag}, value: {self._value} [{'NOT ' if not self._dirty_bit else ''}DIRTY]>"
 
 
 class Cache:
-    def __init__(self, size, name, ways=4, fetch_on_miss=False, replacement=None):
+    def __init__(self, size: int, name: str, ways: int = 4, fetch_on_miss: bool = False, replacement=None) -> None:
         self._size = size
         self._ways = ways
         self._n_rows = self._size // self._ways
         self._name = name
         self._replacement_policy = replacement
         self._fetch_on_miss = fetch_on_miss
-        self._mem = [defaultdict(None, {}) for _ in range(self._n_rows)]
+        self._mem: List[Dict] = [defaultdict(
+            None, {}) for _ in range(self._n_rows)]
 
         for row in self._mem:
             for way in range(self._ways):

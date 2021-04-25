@@ -1,4 +1,5 @@
 from register_bank import Register
+from helpers import bin2dec, dec2bin
 
 # RISC-V opcodes repo license
 '''
@@ -104,7 +105,7 @@ class Instruction:
         command = ""
 
         if self.hasOffset:
-            offset = int(self.offset, 2)
+            offset = bin2dec(self.offset)
 
             if self.opcode == "0000011" and self.funct3 == "010":
                 command = "LW"
@@ -198,10 +199,10 @@ class Instruction:
             return -1
 
         funct7 = instruction[0:7]
-        rs2 = f"x{int(instruction[7:12], 2)}"
-        rs1 = f"x{int(instruction[12:17], 2)}"
+        rs2 = f"x{bin2dec(instruction[7:12])}"
+        rs1 = f"x{bin2dec(instruction[12:17])}"
         funct3 = instruction[17:20]
-        rd = f"x{int(instruction[20:25], 2)}"
+        rd = f"x{bin2dec(instruction[20:25])}"
         opcode = instruction[25:32]
         hasOffset = False
 

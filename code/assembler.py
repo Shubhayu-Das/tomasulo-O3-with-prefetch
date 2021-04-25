@@ -8,36 +8,43 @@ All are integer instructions only. Execution generates integers only [updated].
 '''
 import re
 import sys
+from typing import List
 
-from helpers import pad
+from helpers import pad, dec2bin
 
 # Function to split the instruction string into opcode and registers(and offset if needed)
 # This function is capable of handling comments too
 
 
-def clean_program(program):
-    program = [inst.split(";")[0].strip() for inst in program]
+def clean_program(program: List[str]) -> List[str]:
+    program = [insts.split(";")[0].strip() for insts in program]
     program = list(filter(None, program))
 
     return program
 
 
-def split_operands(program):
-    program = [re.split(r",|\s", inst) for inst in program]
-    program = [[re.sub(r'X(\d)', r'\1', word.upper()) for word in inst if word]
-               for inst in program]
-    program = [inst for inst in program if inst]
+def split_operands(program: List[str]) -> List[List[str]]:
+    split_components: List[List[str]] = [
+        re.split(r",|\s", insts) for insts in program]
 
-    return program
+    rename_regs: List[List[str]] = []
+    for insts in split_components:
+        rename_regs.append([re.sub(r'X(\d)', r'\1', word.upper())
+                           for word in insts if word])
+
+    split_program: List[List[str]] = [insts for insts in rename_regs if insts]
+
+    return split_program
 
 # The main assembler function, which contains the mapping between the instructions and their
 # opcodes, function-7 and function-3 fields
 
 
-def assembler(filename):
-    outFile = ".".join([filename.split("/")[-1].split(".")[0], "bin"])
-    program = []
-    assembly = []
+def assembler(filename: str) -> str:
+    insts: List[str] = []
+    outFile: str = ".".join([filename.split("/")[-1].split(".")[0], "bin"])
+    program: List[str] = []
+    assembly: List[str] = []
     branch_mappings = {}
 
     mapping = {
@@ -87,53 +94,53 @@ def assembler(filename):
 
     for index, line in enumerate(program):
         if ":" in line:
-            tag, inst = line.split(":")
-            program[index] = inst
+            tag, instruction = line.split(":")
+            program[index] = instruction
             branch_mappings.update({tag: index})
 
     # Split each instruction into requisite pieces
-    program = split_operands(program)
+    split_program: List[List[str]] = split_operands(program)
 
     # Decode the split chunks into binary
-    for i, inst in enumerate(program):
-        if inst[0].startswith('B'):
+    for i, insts in enumerate(split_program):
+        if insts[0].startswith('B'):
 
-            inst[-1] = branch_mappings[inst[-1]] - i - 1
+            insts[-1] = branch_mappings[insts[-1]] - i - 1
 
-            offset = pad(bin(int(inst[-1])), 12)
-            rs2 = pad(bin(int(inst[1])), 5)
-            rs1 = pad(bin(int(inst[2])), 5)
-            funct3 = mapping[inst[0]]["funct3"]
-            opcode = mapping[inst[0]]["opcode"]
+            offset = dec2bin(int(insts[-1]), 12)
+            rs2 = dec2bin(int(insts[1]), 5)
+            rs1 = dec2bin(int(insts[2]), 5)
+            funct3 = mapping[insts[0]]["funct3"]
+            opcode = mapping[insts[0]]["opcode"]
 
             assembly.append(offset[0]+offset[2:8]+rs2 +
                             rs1+funct3+offset[8:]+offset[1]+opcode)
 
-        elif "LW" in inst:
-            offset, rs1 = inst[2].split('(')
+        elif "LW" in insts:
+            offset, rs1 = insts[2].split('(')
 
-            offset = pad(bin(int(offset)), 12)
-            rs1 = pad(bin(int(rs1.replace(')', ''))), 5)
-            rd = pad(bin(int(inst[1])), 5)
+            offset = dec2bin(int(offset), 12)
+            rs1 = dec2bin(int(rs1.replace(')', '')), 5)
+            rd = dec2bin(int(insts[1]), 5)
 
             assembly.append(
                 offset + rs1 + mapping["LW"]["funct3"] + rd + mapping["LW"]["opcode"])
-        elif "SW" in inst:
-            offset, base = inst[2].split('(')
+        elif "SW" in insts:
+            offset, base = insts[2].split('(')
 
-            offset = pad(bin(int(offset)), 12)
-            base = pad(bin(int(base.replace(')', ''))), 5)
-            rs2 = pad(bin(int(inst[1])), 5)
+            offset = dec2bin(int(offset), 12)
+            base = dec2bin(int(base.replace(')', '')), 5)
+            rs2 = dec2bin(int(insts[1]), 5)
 
             assembly.append(
                 offset[0:7] + rs2 + base + mapping["SW"]["funct3"] + offset[7:] + mapping["SW"]["opcode"])
         else:
-            rd = pad(bin(int(inst[1])), 5)
-            rs1 = pad(bin(int(inst[2])), 5)
-            rs2 = pad(bin(int(inst[3])), 5)
+            rd = dec2bin(int(insts[1]), 5)
+            rs1 = dec2bin(int(insts[2]), 5)
+            rs2 = dec2bin(int(insts[3]), 5)
 
-            assembly.append(mapping[inst[0]]["funct7"] + rs2 + rs1 +
-                            mapping[inst[0]]["funct3"] + rd + mapping[inst[0]]["opcode"])
+            assembly.append(mapping[insts[0]]["funct7"] + rs2 + rs1 +
+                            mapping[insts[0]]["funct3"] + rd + mapping[insts[0]]["opcode"])
 
     # Write the assembled binary into an output bin file
     with open(f"../build/{outFile}", 'w') as destFile:
