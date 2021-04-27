@@ -118,7 +118,7 @@ class MemoryController:
         else:
             return L1D_CACHE_LATENCY+L2D_CACHE_LATENCY+MEMORY_LATENCY
 
-    def prefetch_tick():
+    def prefetch_tick(self):
         pop_list = []
         for i in range(len(self._prefetcher_queue)):
             self._prefetcher_queue[i]['count'] = self._prefetcher_queue[i]['count'] - 1
@@ -195,8 +195,30 @@ class MemoryController:
             self._L1D_read_hits = self._L1D_read_hits + 1
             return [value[1], L1D_CACHE_LATENCY]
 
-    def get_L1D_read_hits():
+    def get_L1D_read_hits(self):
         return self._L1D_read_hits
+    
+    def get_L2D_read_hits(self):
+        return self._L2D_read_hits
+    
+    def get_L1D_read_miss(self):
+        return self._L1D_read_miss
+    
+    def get_L2D_read_miss(self):
+        return self._L2D_read_miss
+
+    def get_L1D_write_hits(self):
+        return self._L1D_write_hits
+    
+    def get_L1D_write_miss(self):
+        return self._L1D_write_miss
+
+    def get_prefetch_hits(self):
+        return self._prefetch_hits
+    
+    def get_prefetch_accuracy(self):
+        return self._prefetch_hits/self._total_prefetches
+
     
 
 
