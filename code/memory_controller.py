@@ -40,6 +40,22 @@ class MemoryController:
         if enable_prefetcher:
             self._prefetcher = Prefetcher(self._size)
 
+        self._prefetcher_queue = [] #list of dictionary({"address":prefetch_address,"value":mem_value,"count":MEMORY_LATENCY})
+
+        #caching stats
+        self._L1D_read_hits = 0
+        self._L2D_read_hits = 0
+        self._L1D_read_miss = 0
+        self._L2D_read_miss = 0
+        self._L1D_write_hits = 0
+        self._L1D_write_miss = 0
+
+        #prefeteching stats
+        self._prefetched_addresses = []
+        self._prefetch_hits = 0
+        self._total_prefetches = 0
+        
+
     def load_memory(self):
         with open(self._mem_file, 'r') as dataMemory:
             self._memory = dataMemory.readlines()
@@ -71,10 +87,12 @@ class MemoryController:
             return False
 
         if self._L1D.set_entry(addr, data):
+            self._L1D_write_hits = self._L1D_write_hits + 1 
             self._L2D.update_busy_bit(addr, True)
             self._mem_busy_bit[addr] = True
             return data
         else:
+            self._L1D_write_miss = self._L1D_write_miss + 1
             write_back = self._L1D.add_entry(data, addr, True, True)
             if(write_back):
                 if(self._L2D.has_entry(addr)):
@@ -100,24 +118,39 @@ class MemoryController:
         else:
             return L1D_CACHE_LATENCY+L2D_CACHE_LATENCY+MEMORY_LATENCY
 
+    def prefetch_tick():
+        pop_list = []
+        for i in range(len(self._prefetcher_queue)):
+            self._prefetcher_queue[i]['count'] = self._prefetcher_queue[i]['count'] - 1
+            if(self._prefetcher_queue[i]['count'] == 0):
+                self._L2D.add_entry(self._prefetcher_queue[i]['value'],self._prefetcher_queue[i]['address'])
+                self._prefetched_addresses.append(self._prefetcher_queue[i]['address'])
+                self._total_prefetches = self._total_prefetches + 1
+                pop_list.append(i)
+        for i in range(len(pop_list)):
+            self._prefetcher_queue.pop(pop_list[i]-i)   
+
     def get_memory_entry(self, addr):
         if addr > self._size:
             return False
 
         # [data_at_location, n_cycles_needed_for_access]
 
-        # prefetching part :: NEED TO REVIEW
+        # prefetching part 
         if(PREFETCHER_ON):
             prefetch_address = self._prefetcher.prefetch_address(addr)
             if not self._mem_busy_bit[prefetch_address]:
                 mem_value = self._memory[prefetch_address]
-                self._L2D.add_entry(mem_value, prefetch_address)
+                self._prefetcher_queue.append({"address":prefetch_address,"value":mem_value,"count":MEMORY_LATENCY})
+                
 
         # accessing caches
         value = self._L1D.get_memory_entry(addr)
         if not value:
+            self._L1D_read_miss = self._L1D_read_miss + 1
             value = self._L2D.get_memory_entry(addr)
             if not value:
+                self._L2D_read_miss = self._L2D_read_miss + 1
                 if self._mem_busy_bit[addr]:
                     return False
                 else:
@@ -140,6 +173,13 @@ class MemoryController:
 
                     return [mem_value, L1D_CACHE_LATENCY+L2D_CACHE_LATENCY+MEMORY_LATENCY]
             else:
+                self._L2D_read_hits = self._L2D_read_hits + 1
+
+                #updating prefetcher stats
+                if addr in self._prefetched_addresses:
+                    self._prefetch_hits = self._prefetch_hits + 1
+                #end of stats update
+                
                 write_back = self._L1D.add_entry(value, addr)
                 if(write_back):
                     if(self._L2D.has_entry(addr)):
@@ -152,7 +192,13 @@ class MemoryController:
                             self.save_memory()
                 return [value[1], L1D_CACHE_LATENCY+L2D_CACHE_LATENCY]
         else:
+            self._L1D_read_hits = self._L1D_read_hits + 1
             return [value[1], L1D_CACHE_LATENCY]
+
+    def get_L1D_read_hits():
+        return self._L1D_read_hits
+    
+
 
     # Get the entire memory, for the GUI
 
