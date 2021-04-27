@@ -22,14 +22,21 @@ class MemoryController:
 
         self.load_memory()
 
+        # checking for whether L1 cache is enabled or not. 
+        # If enabled then creating L1D cache with given cache size and number of ways, and replacement policy it uses 
+
         if enable_L1:
             self._L1D = Cache(L1D_CACHE_SIZE, "L1D", L1D_WAYS, True, Replacement_policy(
                 L1D_CACHE_SIZE, L1D_WAYS))  # have to update
+
+        # checking for whether L1 cache is enabled or not. 
+        # If enabled then creating L1D cache with given cache size and number of ways, and replacement policy it uses 
 
         if enable_L2:
             self._L2D = Cache(L2D_CACHE_SIZE, "L2D", L2D_WAYS,
                               True, Replacement_policy(L2D_CACHE_SIZE, L2D_WAYS))
 
+        #Getting memory for memory accesses
         if os.path.exists(mem_file):
             self._mem_file = mem_file
         else:
@@ -37,6 +44,9 @@ class MemoryController:
             return
 
         self._prefetcher = None
+
+        # Checking for prefetcher is enabled or not. 
+        # If enabled, we are intializing the prefetcher - Here using  
         if enable_prefetcher:
             self._prefetcher = Prefetcher(self._size)
 
@@ -56,6 +66,7 @@ class MemoryController:
         self._total_prefetches = 0
         
 
+    # Loading data memory here
     def load_memory(self):
         with open(self._mem_file, 'r') as dataMemory:
             self._memory = dataMemory.readlines()
@@ -68,6 +79,7 @@ class MemoryController:
         if DEBUG:
             print("Memory loaded of size: ", self._size)
 
+    # Use to save the data in memory file
     def save_memory(self):
         write_buffer = [dec2bin(line, WORD_SIZE) +
                         "\n" for line in self._memory]
@@ -79,9 +91,12 @@ class MemoryController:
 
         return True
 
+    # if busy bit is set if that address line in memory is being used currently for lw sw operation.
+    # if busy bit is 0 then we can access the address line in memory
     def mem_busy_bit_update(self, addr, busy_bit):
         self._mem_busy_bit[addr] = busy_bit
 
+    # mem write function is used sw word instruction, basically write to memory instructions
     def mem_write(self, addr, data):
         if addr > self._size:
             return False
@@ -105,11 +120,15 @@ class MemoryController:
                         self.save_memory()
             return data
 
+    # if busy bit is set if that address line in L1D and L2D caches is being used currently for lw sw operation.
+    # if busy bit is 0 then we can access the address line in L1D and L2D caches 
     def update_busy_bit(self, addr, value=False):
         self._L1D.update_busy_bit(addr, value)
         self._L2D.update_busy_bit(addr, value)
         self.mem_busy_bit_update(addr, True)
 
+    # returns the how many clock cycles are required that memory access. 
+    # It varies if the entry is in L1D cache or L2D cahce or in memory 
     def get_latency(self, addr):
         if(self._L1D.has_entry(addr)):
             return L1D_CACHE_LATENCY
@@ -118,6 +137,8 @@ class MemoryController:
         else:
             return L1D_CACHE_LATENCY+L2D_CACHE_LATENCY+MEMORY_LATENCY
 
+    # this functions checks whether the latency of the memory line is satisfied to be prefetched or not. 
+    # If yes it prefetches the date and puts in L2D cache
     def prefetch_tick(self):
         pop_list = []
         for i in range(len(self._prefetcher_queue)):
@@ -130,6 +151,7 @@ class MemoryController:
         for i in range(len(pop_list)):
             self._prefetcher_queue.pop(pop_list[i]-i)   
 
+    # mem write function is used lw word instruction, basically read from memory instructions
     def get_memory_entry(self, addr):
         if addr > self._size:
             return False
@@ -195,6 +217,7 @@ class MemoryController:
             self._L1D_read_hits = self._L1D_read_hits + 1
             return [value[1], L1D_CACHE_LATENCY]
 
+    # for stats
     def get_L1D_read_hits(self):
         return self._L1D_read_hits
     

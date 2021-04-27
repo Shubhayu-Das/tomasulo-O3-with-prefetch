@@ -188,7 +188,7 @@ class ReservationStation:
     # Function to get a particular entry, given the associated Instruction(using PC)
     def get_entry(self, instr):
         if isinstance(instr, Instruction):
-            for entry in self._entries:
+            for entry in self._buffer:
                 if entry.get_inst() == instr:
                     return entry
         else:
