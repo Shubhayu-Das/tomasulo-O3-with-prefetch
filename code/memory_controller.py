@@ -145,7 +145,7 @@ class MemoryController:
         pop_list = []
         for i in range(len(self._prefetcher_queue)):
             self._prefetcher_queue[i]['count'] = self._prefetcher_queue[i]['count'] - 1
-            if(self._prefetcher_queue[i]['count'] <= 0):
+            if(self._prefetcher_queue[i]['count'] == 0):
                 self._L2D.add_entry(self._prefetcher_queue[i]['value'],self._prefetcher_queue[i]['address'])
                 self._prefetched_addresses.append(self._prefetcher_queue[i]['address'])
                 self._total_prefetches = self._total_prefetches + 1
@@ -163,8 +163,7 @@ class MemoryController:
         # prefetching part
         if PREFETCHER_ON:
             prefetch_address = self._prefetcher.prefetch_address(addr)
-            #if self._L2D.get_busy_bit()
-            if not self._L2D.has_entry(prefetch_address) or not self._L1D.has_entry(prefetch_address):
+            if not self._L2D.has_entry(prefetch_address) and not self._L1D.has_entry(prefetch_address):
                 if not self._mem_busy_bit[prefetch_address]:
                     mem_value = self._memory[prefetch_address]
                     self._prefetcher_queue.append(

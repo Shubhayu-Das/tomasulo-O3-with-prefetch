@@ -142,6 +142,17 @@ class Cache:
         else:
             return False
 
+    # If add exists then return its Busy bit
+    def get_busy_bit(self, addr):
+        _, _, row, way = self.__find_location(addr)
+
+        if way:
+            entry = row[way]
+            return entry.get_busy_bit()
+        else:
+            return False
+
+
     def update_dirty_bit(self, addr, value):
         _, _, row, way = self.__find_location(addr)
 
