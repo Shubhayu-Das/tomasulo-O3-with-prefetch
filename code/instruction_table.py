@@ -1,7 +1,7 @@
 '''
-MIT Licensed by Shubhayu Das, copyright 2021
+MIT Licensed by Shubhayu Das, Veerendra S Devaraddi, Sai Manish Sasanapuri, copyright 2021
 
-Developed for Processor Architecture course assignment 1 - Tomasulo Out-Of-Order Machine
+Developed for Processor Architecture course assignments 1 and 3 - Tomasulo Out-Of-Order Machine
 
 This file contains the data structure used to represent the instruction table and every entry in it.
 

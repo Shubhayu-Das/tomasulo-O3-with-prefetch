@@ -1,7 +1,7 @@
 '''
-MIT Licensed by Shubhayu Das, copyright 2021
+MIT Licensed by Shubhayu Das, Veerendra S Devaraddi, Sai Manish Sasanapuri, copyright 2021
 
-Developed for Processor Architecture course assignment 1 - Tomasulo Out-Of-Order Machine
+Developed for Processor Architecture course assignments 1 and 3 - Tomasulo Out-Of-Order Machine
 
 This is the script for a basic RISC-V assembler. It only support LW, ADD, SUB, MUL and DIV instructions so far.
 All are integer instructions only. Execution generates integers only [updated].
@@ -18,6 +18,7 @@ from helpers import pad, dec2bin
 
 def clean_program(program: List[str]) -> List[str]:
     program = [insts.split(";")[0].strip() for insts in program]
+    program = map(lambda x: "ADDI x0, x0, 0" if x == "NOP" else x, program)
     program = list(filter(None, program))
 
     return program
@@ -84,6 +85,10 @@ def assembler(filename: str) -> str:
             "funct3": "001",
             "opcode": "1100011"
         },
+        "ADDI": {
+            "funct3": "000",
+            "opcode": "0010011"
+        }
     }
 
     # Read the source code
@@ -103,6 +108,15 @@ def assembler(filename: str) -> str:
 
     # Decode the split chunks into binary
     for i, insts in enumerate(split_program):
+        inst = mapping.get(insts[0])
+        if inst is None:
+            print(
+                f"Instruction: {insts[0]} not supported/is not a valid RISC-V instruction. Skipping")
+            continue
+
+        funct3 = inst.get("funct3")
+        opcode = inst.get("opcode")
+
         if insts[0].startswith('B'):
 
             insts[-1] = branch_mappings[insts[-1]] - i - 1
@@ -110,11 +124,16 @@ def assembler(filename: str) -> str:
             offset = dec2bin(int(insts[-1]), 12)
             rs2 = dec2bin(int(insts[1]), 5)
             rs1 = dec2bin(int(insts[2]), 5)
-            funct3 = mapping[insts[0]]["funct3"]
-            opcode = mapping[insts[0]]["opcode"]
 
             assembly.append(offset[0]+offset[2:8]+rs2 +
                             rs1+funct3+offset[8:]+offset[1]+opcode)
+
+        elif insts[0].endswith('I'):
+            imm = dec2bin(int(insts[-1]), 12)
+            rd = dec2bin(int(insts[1]), 5)
+            rs1 = dec2bin(int(insts[2]), 5)
+
+            assembly.append(imm + rs1 + funct3 + rd + opcode)
 
         elif "LW" in insts:
             offset, rs1 = insts[2].split('(')
@@ -124,7 +143,7 @@ def assembler(filename: str) -> str:
             rd = dec2bin(int(insts[1]), 5)
 
             assembly.append(
-                offset + rs1 + mapping["LW"]["funct3"] + rd + mapping["LW"]["opcode"])
+                offset + rs1 + funct3 + rd + opcode)
         elif "SW" in insts:
             offset, base = insts[2].split('(')
 
@@ -133,14 +152,14 @@ def assembler(filename: str) -> str:
             rs2 = dec2bin(int(insts[1]), 5)
 
             assembly.append(
-                offset[0:7] + rs2 + base + mapping["SW"]["funct3"] + offset[7:] + mapping["SW"]["opcode"])
+                offset[0:7] + rs2 + base + funct3 + offset[7:] + opcode)
         else:
             rd = dec2bin(int(insts[1]), 5)
             rs1 = dec2bin(int(insts[2]), 5)
             rs2 = dec2bin(int(insts[3]), 5)
 
             assembly.append(mapping[insts[0]]["funct7"] + rs2 + rs1 +
-                            mapping[insts[0]]["funct3"] + rd + mapping[insts[0]]["opcode"])
+                            funct3 + rd + opcode)
 
     # Write the assembled binary into an output bin file
     with open(f"../build/{outFile}", 'w') as destFile:

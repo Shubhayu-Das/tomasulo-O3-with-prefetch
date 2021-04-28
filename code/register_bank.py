@@ -1,7 +1,7 @@
 '''
-MIT Licensed by Shubhayu Das, copyright 2021
+MIT Licensed by Shubhayu Das, Veerendra S Devaraddi, Sai Manish Sasanapuri, copyright 2021
 
-Developed for Processor Architecture course assignment 1 - Tomasulo Out-Of-Order Machine
+Developed for Processor Architecture course assignments 1 and 3 - Tomasulo Out-Of-Order Machine
 
 This file contains the data structure used to represent the ARF and every register in it.
 
@@ -65,6 +65,7 @@ class RegisterBank:
         # Perform random initialization of the ARF
         if init == []:
             init = [randint(1, 101) for _ in range(size)]
+            init[0] = 0
         else:
             size = len(init)
 

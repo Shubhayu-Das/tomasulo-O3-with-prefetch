@@ -12,7 +12,7 @@ Feel free to raise Issues for feature requests and bugs.
 The original code is publicly available [here](https://gitlab.com/shubhayu-das/tomasulo-o3-processor-simulator). We will make the original repo public on Github after our course is complete.
 
 
-Version: 1.8.0
+Version: 1.9.0
 
 -------------------
 ### Students
@@ -23,7 +23,7 @@ Version: 1.8.0
 -----------------------------
 
 ### Progress
-Updated GUI to accomodate cache and data memory display.
+Test and fix cache
 
 -----------------------------
 
@@ -81,7 +81,7 @@ $ pip install pycodestyle autopep8
 After this, detect all the errors using:
 
 ```bash
-$ pycodestyle code/ --statistics
+$ pycodestyle code/ --statistics | grep -v E501
 ```
 You might want to pipe the output through ```tail```, to see the statistics at the end only. Optionally, you can use ```grep``` to search for occurances of a particular error.
 

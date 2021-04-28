@@ -1,3 +1,12 @@
+'''
+MIT Licensed by Shubhayu Das, Veerendra S Devaraddi, Sai Manish Sasanapuri, copyright 2021
+
+Developed for Processor Architecture course assignments 1 and 3 - Tomasulo Out-Of-Order Machine
+
+This file contains some helper functions which are used in various places
+'''
+
+
 # Zero pad the binary numbers appropriately
 def pad(number: str, n: int) -> str:
     number = number[2:]

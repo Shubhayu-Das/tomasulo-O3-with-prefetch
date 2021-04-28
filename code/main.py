@@ -1,7 +1,7 @@
 '''
-MIT Licensed by Shubhayu Das, copyright 2021
+MIT Licensed by Shubhayu Das, Veerendra S Devaraddi, Sai Manish Sasanapuri, copyright 2021
 
-Developed for Processor Architecture course assignment 1 - Tomasulo Out-Of-Order Machine
+Developed for Processor Architecture course assignments 1 and 3 - Tomasulo Out-Of-Order Machine
 
 This file contains the main logic, that combines individual blocks into a cohesive whole
 '''
@@ -40,7 +40,7 @@ class Tomasulo:
         self._memory_controller = MemoryController(data_mem, True, True)
 
         # Creating objects of the functional components
-        self._ARF = ARF(size=10, init=[4, 1, 4, 5, 3, 4, 1, 2, 2, 3])
+        self._ARF = ARF(size=10, init=[0, 1, 4, 5, 3, 4, 1, 2, 2, 3])
 
         self._ADD_RS = ReservationStation(constants.ADD_SUB, size=3)
         self._MUL_RS = ReservationStation(constants.MUL_DIV, size=2)
@@ -74,11 +74,25 @@ class Tomasulo:
         for it_entry in self._instructionTable.get_entries():
             if it_entry.get_state() == constants.RunState.NOT_STARTED:
                 instruction = it_entry.get_inst()
+
+                # If current instruction is a NOP, stall for a cycle essentially
+                # This stall in dispatch will propagate throughout the other stages
+                if instruction.is_NOP():
+                    it_entry.rs_issue("-")
+                    it_entry.ex_start("-")
+                    # Just in case ADDI takes longer
+                    it_entry.set_max_tick(1)
+                    it_entry.ex_tick("-")
+                    it_entry.cdb_write("-")
+                    it_entry.commit("-")
+                    self._n_complete += 1
+                    break
+
                 instruction_type = instruction.disassemble()["command"]
 
                 RS = None
 
-                if instruction_type in ["ADD", "SUB"]:
+                if instruction_type in ["ADD", "SUB", "ADDI"]:
                     RS = self._ADD_RS
                 elif instruction_type in ["MUL", "DIV"]:
                     RS = self._MUL_RS

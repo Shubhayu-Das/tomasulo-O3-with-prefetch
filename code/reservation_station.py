@@ -1,7 +1,7 @@
 '''
-MIT Licensed by Shubhayu Das, copyright 2021
+MIT Licensed by Shubhayu Das, Veerendra S Devaraddi, Sai Manish Sasanapuri, copyright 2021
 
-Developed for Processor Architecture course assignment 1 - Tomasulo Out-Of-Order Machine
+Developed for Processor Architecture course assignments 1 and 3 - Tomasulo Out-Of-Order Machine
 
 This file contains the data structure used to represent the reservation stations(RS) and their entries
 
@@ -9,6 +9,7 @@ The RSes are used to keep track of the instructions and their source operands un
 they start executing. Once they start executing, they are removed from the corresponding RS.
 '''
 from constants import DEBUG
+from helpers import bin2dec
 from instruction import Instruction
 
 
@@ -26,8 +27,12 @@ class ReservationStationEntry:
         # Check if the value is available, else get the tag
         self._src_val1, self._src_tag1 = self.__getSrcValTag(
             ARFTable.get_register(instr.rs1))
-        self._src_val2, self._src_tag2 = self.__getSrcValTag(
-            ARFTable.get_register(instr.rs2))
+
+        if instr.disassemble()["command"].endswith("I"):
+            self._src_val2, self._src_tag2 = bin2dec(instr.offset), "-"
+        else:
+            self._src_val2, self._src_tag2 = self.__getSrcValTag(
+                ARFTable.get_register(instr.rs2))
 
     # Function to check if the ARF entry is valid, and get the value/tag accordingly
     def __getSrcValTag(self, source):
@@ -58,12 +63,13 @@ class ReservationStationEntry:
             "SUB": lambda x, y: int(x-y),
             "MUL": lambda x, y: int(x*y),
             "DIV": lambda x, y: int(x/y),
+            "ADDI": lambda x, y: int(x+y),
             "BEQ": lambda x, y: 1 if x == y else 0,
             "BNE": lambda x, y: 1 if x != y else 0,
         }
 
         try:
-            return lookup[command](self._src_val1, self._src_val2)
+            return lookup.get(command)(self._src_val1, self._src_val2)
         except ZeroDivisionError:
             print("Divisor is 0!: ", self._src_val1, self._src_val2)
             return 0

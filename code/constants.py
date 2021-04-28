@@ -1,7 +1,9 @@
-'''
-MIT Licensed by Shubhayu Das, copyright 2021
+import sys
 
-Developed for Processor Architecture course assignment 1 - Tomasulo Out-Of-Order Machine
+'''
+MIT Licensed by Shubhayu Das, Veerendra S Devaraddi, Sai Manish Sasanapuri, copyright 2021
+
+Developed for Processor Architecture course assignments 1 and 3 - Tomasulo Out-Of-Order Machine
 
 This file contains some important constants that are used to modify the behaviour of the entire program.
 '''
@@ -9,11 +11,14 @@ This file contains some important constants that are used to modify the behaviou
 # Some variables that affect the output of the program
 # Set DEBUG to True to enable text output to the terminal
 DEBUG = False
-VERSION = "1.8.0"
+VERSION = "1.9.0"
 
 # Font size for the text in the GUI
 # Decrease if content doesn't seem to fitting in properly
-GUI_FONTSIZE = 16
+if sys.platform == 'win32':
+    GUI_FONTSIZE = 12
+else:
+    GUI_FONTSIZE = 16
 
 # CYCLE_DURATION sets the time period of each clock cycle.
 # Increase this value(in milliseconds) to make each cycle last longer in the simulation
@@ -41,6 +46,7 @@ PREFETCHER_ON = False
 # The number of cycles taken by each supported instruction to execute
 NumCycles = {
     "ADD": 1,
+    "ADDI": 1,
     "SUB": 1,
     "MUL": 10,
     "DIV": 40,

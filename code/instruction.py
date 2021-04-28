@@ -31,9 +31,9 @@ MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 
 # MY program's license and info
 '''
-MIT Licensed by Shubhayu Das, copyright 2021
+MIT Licensed by Shubhayu Das, Veerendra S Devaraddi, Sai Manish Sasanapuri, copyright 2021
 
-Developed for Processor Architecture course assignment 1 - Tomasulo Out-Of-Order Machine
+Developed for Processor Architecture course assignments 1 and 3 - Tomasulo Out-Of-Order Machine
 
 This file contains a class data structure that represents every instruction
 
@@ -44,6 +44,8 @@ instruction - funct7 - rs2 - rs1 - funct3 - rd - opcode
     SUB      0100000 - src2 - src1 - 000 - dest - 0110011
     LW        offset[31:20] - src1 - 010 - dest - 0000011
     SW       os[11:5] - src - base - 010 -os[4:0]-0100011
+
+    ADDI       imm[11:0]    - src1 - 000 - dest - 0010011
 
     MUL      0000001 - src2 - src1 - 000 - dest - 0110011
     DIV      0000001 - src2 - src1 - 100 - dest - 0110011
@@ -86,6 +88,9 @@ class Instruction:
             elif opcode == "0100011" and funct3 == "010":  # SW
                 self.rs2 = rs2
                 self.offset = funct7 + rd
+            elif opcode == "0010011" and funct3 == "000":  # ADDI, similar to LW
+                self.rd = rd
+                self.offset = funct7 + rs2
             elif opcode == "1100011":   # Branches
                 self.rs2 = rs2
                 self.offset = (funct7[0] + rd[-1] + funct7[1:] + rd[0:-1])
@@ -124,6 +129,18 @@ class Instruction:
                     "command": command,
                     "rs1": self.rs1,
                     "rs2": self.rs2,
+                    "offset": offset
+                }
+
+            # Immediate instructions
+            elif self.opcode == "0010011":
+                if self.funct3 == "000":
+                    command = "ADDI"
+
+                return {
+                    "command": command,
+                    "rs1": self.rs1,
+                    "rd": self.rd,
                     "offset": offset
                 }
 
@@ -182,6 +199,17 @@ class Instruction:
             elif instruction["command"] == "SW":
                 rs2 = instruction["rs2"]
                 return f"{instruction['command']} {rs2}, {instruction['offset']}({rs1})"
+
+            # Immediate instructions
+            elif instruction["command"].endswith("I"):
+                rd = instruction["rd"]
+
+                if self.is_NOP():
+                    return "NOP"
+
+                return f"{instruction['command']} {rd}, {rs1}, {instruction['offset']}"
+
+            # Branch instructions
             elif instruction["command"].startswith("B"):
                 rs2 = instruction["rs2"]
                 return f"{instruction['command']} {rs2}, {rs1}, {instruction['offset']}"
@@ -189,6 +217,17 @@ class Instruction:
         else:
             rd = instruction["rd"]
             return f"{instruction['command']} {rd}, {rs1}, {instruction['rs2']}"
+
+    def is_NOP(self):
+        instruction = self.disassemble()
+
+        rd = instruction.get("rd")
+        if rd is None:
+            return False
+
+        rs1 = instruction["rs1"]
+
+        return instruction["command"] == "ADDI" and rd == "x0" and rs1 == "x0" and instruction['offset'] == 0
 
     # Globally accessible class method to create an Instruction from a binary input
     # This function is capable of removing spaces, which can be added to improve readability
@@ -256,6 +295,22 @@ class Instruction:
                 hasOffset=hasOffset
             )
 
+        # Immediate instructions
+        elif opcode == "0010011" and funct3 in ["000"]:
+            hasOffset = True
+            rs2 = instruction[7:12]
+
+            return Instruction(
+                PC=PC,
+                funct7=funct7,
+                rs2=rs2,
+                rs1=rs1,
+                rd=rd,
+                funct3=funct3,
+                opcode=opcode,
+                hasOffset=hasOffset
+            )
+
         else:
             return Instruction(
                 PC=PC,
@@ -270,8 +325,8 @@ class Instruction:
 
     def __str__(self):
         if self.hasOffset:
-            if self.opcode == "0000011" and self.funct3 == "010":
-                return f"<[PC={self.PC}] offset:{self.offset} rs1:{self.rs1} funct3:{self.funct3} rd:{self.rd} opcode:{self.opcode}>"
+            if self.opcode in ["0000011", "0010011"]:
+                return f"<[PC={self.PC}] offset/imm:{self.offset} rs1:{self.rs1} funct3:{self.funct3} rd:{self.rd} opcode:{self.opcode}>"
             elif self.opcode == "0100011" and self.funct3 == "010":
                 return f"<[PC={self.PC}] offset:{self.offset} rs1:{self.rs1} funct3:{self.funct3} rs2:{self.rs2} opcode:{self.opcode}>"
             elif self.opcode == "1100011":
@@ -284,3 +339,15 @@ class Instruction:
 
     def __ne__(self, other):
         return self.PC != other.PC
+
+    def __gt__(self, other):
+        return self.PC > other.PC
+
+    def __ge__(self, other):
+        return self.PC >= other.PC
+
+    def __lt__(self, other):
+        return self.PC < other.PC
+
+    def __le__(self, other):
+        return self.PC <= other.PC
