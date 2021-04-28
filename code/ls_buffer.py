@@ -70,12 +70,13 @@ class LoadStoreBufferEntry:
             self._busy = False
             return addr, data
         else:
-            index = self._base_val + self._offset
+            addr = self._base_val + self._offset
 
             # Handing over all memory accesses to the memory controller
-            data = memCtl.get_memory_entry(index)
+            data = memCtl.get_memory_entry(addr)
             if data:
                 self._busy = False
+                data.append(addr)
 
             return data
 

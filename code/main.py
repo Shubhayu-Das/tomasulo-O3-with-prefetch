@@ -144,8 +144,10 @@ class Tomasulo:
                             # Separate handling of memory accesses, where the number of clock
                             # cycles needed might vary
                             if isinstance(data, list) and len(data) > 0:
-                                data, n_cycles_needed = data
+                                data, n_cycles_needed,addr = data
                                 it_entry.set_max_tick(n_cycles_needed)
+                                self._memory_controller.update_busy_bit(addr,value=True)
+                                data = [data,addr]
 
                             it_entry.update_result(data)
                             RS.remove_entry(rs_entry.get_inst())
@@ -161,13 +163,16 @@ class Tomasulo:
     def try_CDB_broadcast(self):
         for it_entry in self._instructionTable.get_entries():
             if it_entry.get_state() == constants.RunState.EX_END:
-
-                if it_entry.get_inst().disassemble()["command"] in ["SW"]:
+                inst = it_entry.get_inst().disassemble()["command"]
+                if inst in ["SW"]:
                     it_entry.cdb_write("-")
                 else:
                     it_entry.cdb_write(self._clock_cycle)
 
                     value = it_entry.get_result()
+                    if inst in ["LW"]:
+                        value,addr = value
+                        self._memory_controller.update_busy_bit(addr,value=False)
                     rob_entry = self._ROB.update_value(
                         it_entry.get_inst(), value)
 

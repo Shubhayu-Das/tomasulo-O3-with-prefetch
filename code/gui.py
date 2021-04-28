@@ -497,8 +497,6 @@ class Graphics():
     # Function to update the state of the memory, using the memory controller
     def __convertMemCtl(self, controller):
         mem = []
-        l1_cache = []
-        l2_cache = []
         caches = [[], []]
         row_sizes = [L1D_CACHE_SIZE//L1D_WAYS, L2D_CACHE_SIZE//L2D_WAYS]
 
@@ -544,7 +542,7 @@ class Graphics():
             ["L1 read hits", controller.get_L1D_read_hits()],
             ["L1 read misses", controller.get_L1D_read_miss()],
             ["L1 write hits", controller.get_L1D_write_hits()],
-            ["L1 write misses", controller.get_L1D_write_hits()],
+            ["L1 write misses", controller.get_L1D_write_miss()],
             ["L2 read hits", controller.get_L2D_read_hits()],
             ["L2 read misses", controller.get_L2D_read_miss()],
             ["Prefetch hits", controller.get_prefetch_hits()],

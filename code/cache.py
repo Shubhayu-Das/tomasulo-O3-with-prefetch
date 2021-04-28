@@ -114,17 +114,17 @@ class Cache:
             #print("In get memory entry when way is true: ", entry)
             col_no = int(way.split(" ")[-1]) - 1
             self._replacement_policy.update_lru(col_no, addr)
-
+            print(addr,entry.get_busy_bit())
             if entry.get_busy_bit():
                 return False
             else:
-                return [True, entry.get_cache_value()]
+                return entry.get_cache_value()
         else:
             return False
 
     # Function to check if a particular entry exists in the cache
     def has_entry(self, addr):
-        _, _, row, way = self.__find_location(addr)
+        _, _, _, way = self.__find_location(addr)
 
         if way:
             return True
@@ -154,8 +154,8 @@ class Cache:
     # Function to add a new entry into the cache
     # Utilizes the replacement policy to find a new cache memory location
     def add_entry(self, data, addr, dirty_bit=False, busy_bit=False):
-        evict_way_index = self._replacement_policy.evict_index(addr)
-        evict_way = list(self._mem[0].keys())[evict_way_index]
+        evicted_way_idx = self._replacement_policy.evict_index(addr)
+        evict_way = list(self._mem[0].keys())[evicted_way_idx]
 
         index = addr % self._n_rows
 
@@ -170,15 +170,13 @@ class Cache:
             if(self._mem[index][i].get_tag() == tag):
                 return False
 
-        updated_tag = addr // self._n_rows
-
         if DEBUG:
             print("Updating tag ", tag, " value ", data)
 
         self._mem[index][evict_way].update_entry(
             data, tag, dirty_bit, True, busy_bit)
 
-        self._replacement_policy.update_lru(evict_way_index, addr)
+        self._replacement_policy.update_lru(evicted_way_idx, addr)
 
         if DEBUG:
             print(was_dirty_true, was_value)
@@ -187,7 +185,7 @@ class Cache:
             if DEBUG:
                 print("Evict tag ", was_tag, " Value ", was_value)
 
-            was_tag = int(was_tag*(2**log2(self._n_rows)))
+            was_tag = was_tag*self._n_rows
             return [was_tag+index, was_value]
         else:
             return False

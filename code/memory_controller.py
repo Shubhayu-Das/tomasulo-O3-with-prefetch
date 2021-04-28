@@ -48,7 +48,7 @@ class MemoryController:
         # Checking for prefetcher is enabled or not.
         # If enabled, we are intializing the prefetcher - Here using
         if PREFETCHER_ON:
-            self._prefetcher = Prefetcher(L2D_CACHE_SIZE)
+            self._prefetcher = Prefetcher(self._size)
 
         # list of dictionary({"address":prefetch_address,"value":mem_value,"count":MEMORY_LATENCY})
             self._prefetcher_queue = []
@@ -163,6 +163,7 @@ class MemoryController:
         # prefetching part
         if PREFETCHER_ON:
             prefetch_address = self._prefetcher.prefetch_address(addr)
+            #if self._L2D.get_busy_bit()
             if not self._L2D.has_entry(prefetch_address) or not self._L1D.has_entry(prefetch_address):
                 if not self._mem_busy_bit[prefetch_address]:
                     mem_value = self._memory[prefetch_address]
@@ -202,6 +203,7 @@ class MemoryController:
 
                 # updating prefetcher stats
                 if addr in self._prefetched_addresses:
+                    print("Came inside checking prefetcher")
                     self._prefetch_hits = self._prefetch_hits + 1
                 # end of stats update
 
@@ -215,10 +217,10 @@ class MemoryController:
                         if(write_back2):
                             self._memory[write_back2[0]] = write_back2[1]
                             self.save_memory()
-                return [value[1], L1D_CACHE_LATENCY+L2D_CACHE_LATENCY]
+                return [value, L1D_CACHE_LATENCY+L2D_CACHE_LATENCY]
         else:
             self._L1D_read_hits = self._L1D_read_hits + 1
-            return [value[1], L1D_CACHE_LATENCY]
+            return [value, L1D_CACHE_LATENCY]
 
     # for stats
     def get_L1D_read_hits(self):
