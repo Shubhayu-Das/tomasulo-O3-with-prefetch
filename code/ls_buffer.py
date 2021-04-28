@@ -35,7 +35,7 @@ class LoadStoreBufferEntry:
 
     def __get_reg_val(self, reg):
         if reg.is_busy():
-            return "-"
+            return reg.get_link()
         else:
             return reg.get_value()
 
@@ -43,9 +43,9 @@ class LoadStoreBufferEntry:
     # This function checks if the source register is ready
     def is_executeable(self):
         if self._dest == "memory":
-            return (self._data_src_val != "-") and (self._base_val != "-")
+            return isinstance(self._data_src_val, int) and isinstance(self._base_val, int)
         else:
-            return (self._base_val != "-")
+            return isinstance(self._base_val, int)
 
     # Function to tell is the particular slot is busy or not. Pretty much vestigial
     # in my implementation
@@ -65,7 +65,7 @@ class LoadStoreBufferEntry:
             return False
 
         if self._is_store:
-            addr = self._base_val + self._offset - 1
+            addr = self._base_val + self._offset
             data = self._data_src_val
             self._busy = False
             return addr, data
@@ -156,14 +156,11 @@ class LoadStoreBuffer:
     def update_rs_entries(self, rob_entry):
         for entry in self._buffer:
             if entry and rob_entry:
-                baseReg = entry._base
-                dataReg = entry._data_src
-
-                if baseReg.get_link() == rob_entry.get_name() and entry._base_val == "-":
+                if entry._base_val == rob_entry.get_name():
                     entry._base_val = rob_entry.get_value()
 
                 if entry._data_src:
-                    if dataReg.get_link() == rob_entry.get_name() and entry._data_src_val == "-":
+                    if entry._data_src_val == rob_entry.get_name():
                         entry._data_src_val = rob_entry.get_value()
 
     # Function to tell if the buffer is full and can't accept more dispatches
@@ -172,7 +169,7 @@ class LoadStoreBuffer:
 
     # Function to get all the entries, for display purpose only
     def get_entries(self):
-        return self._buffer
+        return sorted(filter(None,self._buffer),key=lambda x:x.get_inst())
 
     def __str__(self):
         return f"<LW/SW Buffer>"

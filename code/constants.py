@@ -15,6 +15,7 @@ VERSION = "1.9.0"
 
 # Font size for the text in the GUI
 # Decrease if content doesn't seem to fitting in properly
+
 if sys.platform == 'win32':
     GUI_FONTSIZE = 12
 else:
@@ -22,7 +23,7 @@ else:
 
 # CYCLE_DURATION sets the time period of each clock cycle.
 # Increase this value(in milliseconds) to make each cycle last longer in the simulation
-CYCLE_DURATION = 1000    # in ms
+CYCLE_DURATION = 200    # in ms
 
 # Bit width of the data used by the processor
 WORD_SIZE = 32
@@ -41,7 +42,7 @@ L2D_CACHE_LATENCY = 5
 MEMORY_LATENCY = 10
 
 # Prefetcher
-PREFETCHER_ON = False
+PREFETCHER_ON = True
 
 # The number of cycles taken by each supported instruction to execute
 NumCycles = {

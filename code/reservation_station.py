@@ -202,7 +202,7 @@ class ReservationStation:
 
     # Function to get all the valid entries, mainly for displaying purposes
     def get_entries(self):
-        return list(filter(None, self._buffer))
+        return sorted(filter(None,self._buffer),key=lambda x:x.get_inst())
 
     def __str__(self):
         return f"""Reservation Station for {self._type}.

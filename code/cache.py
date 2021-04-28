@@ -73,10 +73,12 @@ class Cache:
     # Function to get the name of the way, given the tag of the CacheEntry
     def __find_way(self, search_tag, row):
         for way, entry in row.items():
+            #print("way : ", way, "entry : ", entry)
             if search_tag == entry.get_tag():
                 return way
 
-        return None
+        #return None
+        return False
 
     # Function to get the index, tag, cache row entry and the way of an entry, if it exists
     def __find_location(self, addr):
@@ -90,7 +92,7 @@ class Cache:
     # Function to update the value stored at a particular address
     def set_entry(self, addr, data):
         _, tag, row, way = self.__find_location(addr)
-
+        #print(way)
         if way:
             entry = row[way]
 
@@ -109,7 +111,7 @@ class Cache:
 
         if way:
             entry = row[way]
-
+            #print("In get memory entry when way is true: ", entry)
             col_no = int(way.split(" ")[-1]) - 1
             self._replacement_policy.update_lru(col_no, addr)
 

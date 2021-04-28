@@ -117,6 +117,8 @@ class Tomasulo:
                             self._next_event = True
 
                             break
+                    else:
+                        return False
 
         if rob_entry:
             for RS in [self._LSQ, self._ADD_RS, self._MUL_RS]:
@@ -240,6 +242,7 @@ class Tomasulo:
         # The reverse order is to make sure that the previous instruction completes its stages
         self.try_commit()
         rob_entry = self.try_CDB_broadcast()
+        self._memory_controller.prefetch_tick()
         self.try_execute()
 
         # This is needed because I am dispatching after broadcasting.

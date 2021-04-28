@@ -11,7 +11,7 @@ from cache_algos.replacement.lru import Replacement_policy
 
 
 class MemoryController:
-    def __init__(self, mem_file, enable_L1=True, enable_L2=True, enable_prefetcher=True):
+    def __init__(self, mem_file, enable_L1=True, enable_L2=True):
         self._L1D = None
         self._L2D = None
 
@@ -47,11 +47,11 @@ class MemoryController:
 
         # Checking for prefetcher is enabled or not.
         # If enabled, we are intializing the prefetcher - Here using
-        if enable_prefetcher:
-            self._prefetcher = Prefetcher(self._size)
+        if PREFETCHER_ON:
+            self._prefetcher = Prefetcher(L2D_CACHE_SIZE)
 
         # list of dictionary({"address":prefetch_address,"value":mem_value,"count":MEMORY_LATENCY})
-        self._prefetcher_queue = []
+            self._prefetcher_queue = []
 
         # caching stats
         self._L1D_read_hits = 0
@@ -62,9 +62,10 @@ class MemoryController:
         self._L1D_write_miss = 0
 
         # prefeteching stats
-        self._prefetched_addresses = []
-        self._prefetch_hits = 0
-        self._total_prefetches = 0
+        if PREFETCHER_ON:
+            self._prefetched_addresses = []
+            self._prefetch_hits = 0
+            self._total_prefetches = 0
 
     # Loading data memory here
 
@@ -144,11 +145,9 @@ class MemoryController:
         pop_list = []
         for i in range(len(self._prefetcher_queue)):
             self._prefetcher_queue[i]['count'] = self._prefetcher_queue[i]['count'] - 1
-            if(self._prefetcher_queue[i]['count'] == 0):
-                self._L2D.add_entry(
-                    self._prefetcher_queue[i]['value'], self._prefetcher_queue[i]['address'])
-                self._prefetched_addresses.append(
-                    self._prefetcher_queue[i]['address'])
+            if(self._prefetcher_queue[i]['count'] <= 0):
+                self._L2D.add_entry(self._prefetcher_queue[i]['value'],self._prefetcher_queue[i]['address'])
+                self._prefetched_addresses.append(self._prefetcher_queue[i]['address'])
                 self._total_prefetches = self._total_prefetches + 1
                 pop_list.append(i)
         for i in range(len(pop_list)):
@@ -162,12 +161,13 @@ class MemoryController:
         # [data_at_location, n_cycles_needed_for_access]
 
         # prefetching part
-        if(PREFETCHER_ON):
+        if PREFETCHER_ON:
             prefetch_address = self._prefetcher.prefetch_address(addr)
-            if not self._mem_busy_bit[prefetch_address]:
-                mem_value = self._memory[prefetch_address]
-                self._prefetcher_queue.append(
-                    {"address": prefetch_address, "value": mem_value, "count": MEMORY_LATENCY})
+            if not self._L2D.has_entry(prefetch_address) or not self._L1D.has_entry(prefetch_address):
+                if not self._mem_busy_bit[prefetch_address]:
+                    mem_value = self._memory[prefetch_address]
+                    self._prefetcher_queue.append(
+                        {"address": prefetch_address, "value": mem_value, "count": MEMORY_LATENCY})
 
         # accessing caches
         value = self._L1D.get_memory_entry(addr)
@@ -246,7 +246,7 @@ class MemoryController:
         if self._total_prefetches == 0:
             return 0
 
-        return self._prefetch_hits/self._total_prefetches
+        return round(self._prefetch_hits/self._total_prefetches,2)
 
     # Get the entire memory, for the GUI
 

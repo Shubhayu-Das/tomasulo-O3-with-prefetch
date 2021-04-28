@@ -482,9 +482,9 @@ class Graphics():
                     data.append(entry._dest.get_name())
 
                 if entry._base_val == "-":
-                    data.append(f"{4*entry._offset}+{entry._base.get_name()}")
+                    data.append(f"{entry._offset}+{entry._base.get_name()}")
                 else:
-                    data.append(f"{4*entry._offset}+{entry._base_val}")
+                    data.append(f"{entry._offset}+{entry._base_val}")
                 data.append(entry._base.get_name())
 
             else:
@@ -505,7 +505,7 @@ class Graphics():
         # Update the memory
         for addr, mem_row in enumerate(controller.get_memory()):
             data = []
-            data.append(hex(addr+1))
+            data.append(hex(addr))
             data.append(mem_row)
             data.append(hex(int(mem_row, 2)))
             data.append(int(mem_row, 2))
