@@ -1,4 +1,4 @@
-(to see the initial working history, see [here](https://github.com/Shubhayu-Das/VL803-projects)). *This repo is not public yet.*
+(to see the initial working history, see [here](https://github.com/Shubhayu-Das/VL803-projects)).
 
 # Tomasulo OOO Processor
 -------------------------
@@ -8,9 +8,6 @@ This is our attempt to improve on the base Tomasulo machine, designed by Shubhay
 This documentation is still in the works, We will actively improve things in this program and documentation. 
 
 Feel free to raise Issues for feature requests and bugs.
-
-The original code is publicly available [here](https://gitlab.com/shubhayu-das/tomasulo-o3-processor-simulator). We will make the original repo public on Github after our course is complete.
-
 
 Version: 2.0.0
 
@@ -28,16 +25,16 @@ Test and fix cache
 -----------------------------
 
 ### Future improvements
-1. Integrate everything with existing codebase and GUI
-2. Add additional prefetchers and replacement policies
-3. Additional GUI features
-4. Document the code base and improve this README
+1. Add additional prefetchers and replacement policies
+2. Additional GUI features(possibly migrate to Qt? Too much work)
+3. Add a Wiki with all the requisite info?
+4. Add argparse/optparse for taking in input params
 
 ------------------------------
 
 ### Software libraries
 
-Language: Python 3 (3.8.x)
+Language: Python 3 (3.6.x)
 
 **GUI**
 
@@ -145,11 +142,8 @@ Try running the program after this, it should not cause any problems. You can re
 
 ### Known Bugs
 
-1. The "Prev" button can't go below PC=2. Its a pain to figure out how to implement history in the GUI related code in ```main.py```, so I left it as is. After all, how much even happens in the first two cycles.
+1. ```DEBUG=True``` doesn't print a whole lot of intelligible data. This is sorely because I didn't have the time and patience to complete it yet. Enjoy the GUI though.
 
-2. ```DEBUG=True``` doesn't print a whole lot of intelligible data. This is sorely because I didn't have the time and patience to complete it yet. Enjoy the GUI though.
-
-3. While going to the next "event" step, if the next happens to be the last step of the entire execution, the program WILL hang. My history traversal mechanism are pretty buggy right now. If the program hangs, please go to the terminal(from where the python program was started) and press ```Ctrl+C```.
 --------------
 
 ### License
